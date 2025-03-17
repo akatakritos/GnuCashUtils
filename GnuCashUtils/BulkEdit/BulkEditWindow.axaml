@@ -2,7 +2,45 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:bulkEdit="clr-namespace:GnuCashUtils.BulkEdit"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="bulkEdit:BulkEditWindowViewModel"
              x:Class="GnuCashUtils.BulkEdit.BulkEditWindow">
-    Bulk Editor
+
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Source Account" Margin="0 0 8 0"/>
+            <ComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding SourceAccount}" MinWidth="300">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+        
+        
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Move To" Margin="0 0 8 0"/>
+            <ComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding DestinationAccount}" MinWidth="300">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Content="Move" Command="{Binding MoveCommand}" HorizontalAlignment="Right"/>
+
+        </StackPanel>
+        
+        <DataGrid ItemsSource="{Binding Transactions}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" />
+                <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" />
+                <DataGridCheckBoxColumn Header="Move?" Binding="{Binding IsSelected}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </DockPanel>
 </UserControl>

@@ -12,15 +12,13 @@
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <home:MainWindowViewModel/>
+        <home:MainWindowViewModel />
     </Design.DataContext>
 
     <StackPanel>
-    <TextBox Text="/Users/mattburke/personal-copy.sqlite.gnucash" />
-    <Button Content="Backup" />
-    <Button Content="Bulk Edit Account" Command="{Binding BulkEditAccountCommand}"/>
-        
-        
+        <TextBox Text="/Users/mattburke/personal-copy.sqlite.gnucash" />
+        <Button Content="Backup" />
+        <Button Content="Bulk Edit Account" Command="{Binding BulkEditAccountCommand}" />
     </StackPanel>
 
 </Window>

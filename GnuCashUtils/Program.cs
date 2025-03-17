@@ -33,9 +33,12 @@ sealed class Program
 
     private static void RegisterServices()
     {
+        Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+        
         var services = new ServiceCollection();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
         services.AddTransient<IViewFor<BulkEditWindowViewModel>, BulkEditWindow>();
+        services.AddTransient<IDbConnectionFactory, SqliteConnectionFactory>();
         services.UseMicrosoftDependencyResolver();
     }
 }
