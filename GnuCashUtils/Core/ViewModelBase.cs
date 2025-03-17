@@ -1,6 +1,6 @@
 ﻿using ReactiveUI;
 
-namespace GnuCashUtils.ViewModels;
+namespace GnuCashUtils.Core;
 
 public class ViewModelBase : ReactiveObject
 {

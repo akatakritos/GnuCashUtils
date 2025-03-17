@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Reactive;
 using Avalonia.ReactiveUI;
+using GnuCashUtils.BulkEdit;
+using GnuCashUtils.Core;
 using ReactiveUI;
 using Splat;
 
-namespace GnuCashUtils.ViewModels;
+namespace GnuCashUtils.Home;
 
 public class MainWindowViewModel : ViewModelBase
 {

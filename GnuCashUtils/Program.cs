@@ -1,12 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
-using GnuCashUtils.ViewModels;
-using GnuCashUtils.Views;
+using GnuCashUtils.BulkEdit;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Splat;
+using BulkEditWindow = GnuCashUtils.BulkEdit.BulkEditWindow;
 
 namespace GnuCashUtils;
 

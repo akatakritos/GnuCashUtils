@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace GnuCashUtils.Views;
+namespace GnuCashUtils.Home;
 
 public partial class MainWindow : Window
 {

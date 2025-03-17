@@ -1,7 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using GnuCashUtils.ViewModels;
+using GnuCashUtils.Core;
 
 namespace GnuCashUtils;
 
@@ -12,7 +12,7 @@ public class ViewLocator : IDataTemplate
         if (data is null)
             return null;
 
-        var name = data.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
+        var name = data.GetType().FullName!.Replace("ViewModel", "", StringComparison.Ordinal);
         var type = Type.GetType(name);
 
         if (type != null)

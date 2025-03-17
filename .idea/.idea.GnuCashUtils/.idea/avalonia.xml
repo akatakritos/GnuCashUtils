@@ -3,6 +3,8 @@
   <component name="AvaloniaProject">
     <option name="projectPerEditor">
       <map>
+        <entry key="GnuCashUtils/App.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
+        <entry key="GnuCashUtils/Views/BulkEditWindow.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
         <entry key="GnuCashUtils/Views/MainWindow.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
       </map>
     </option>

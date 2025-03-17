@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Dapper;
 using DynamicData.Binding;
+using GnuCashUtils.Core;
 using MediatR;
 using Microsoft.Data.Sqlite;
-using ReactiveUI;
 using ReactiveUI.SourceGenerators;
-using Dapper;
 using Splat;
 
-namespace GnuCashUtils.ViewModels;
+namespace GnuCashUtils.BulkEdit;
 
 public class BulkEditWindowViewModel: ViewModelBase
 {

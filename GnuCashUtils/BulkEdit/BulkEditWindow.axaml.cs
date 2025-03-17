@@ -1,10 +1,6 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
-using GnuCashUtils.ViewModels;
 
-namespace GnuCashUtils.Views;
+namespace GnuCashUtils.BulkEdit;
 
 public partial class BulkEditWindow : ReactiveWindow<BulkEditWindowViewModel>
 {

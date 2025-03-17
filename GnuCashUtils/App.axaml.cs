@@ -1,8 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using GnuCashUtils.ViewModels;
-using GnuCashUtils.Views;
+using GnuCashUtils.Home;
 
 namespace GnuCashUtils;
 
