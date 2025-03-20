@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
@@ -22,26 +23,50 @@ public partial class BulkEditWindowViewModel : ViewModelBase
     public IObservable<List<Account>> Accounts { get; }
     [Reactive] private Account _sourceAccount;
     [Reactive] private Account _destinationAccount;
+    [Reactive] private string _searchText = "";
     public ObservableCollection<SelectableTransactionViewModel> Transactions { get; set; } = new();
     public ReactiveCommand<Unit, Unit> MoveCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectAllCommand { get; }
+    private readonly Subject<Unit> _refreshRequested = new();
 
     public BulkEditWindowViewModel(IMediator? mediator = null)
     {
         mediator ??= Locator.Current.GetService<IMediator>();
         Accounts = Observable.FromAsync(() => mediator.Send(new FetchAccountsRequest()));
 
-        this.WhenAnyValue(x => x.SourceAccount)
+        var accountTransactions = this.WhenAnyValue(x => x.SourceAccount)
+            .CombineLatest(_refreshRequested.StartWith(Unit.Default))
+            .Select(x => x.Item1)
             .Where(x => x != null)
-            .SelectMany(x => Observable.FromAsync(() => mediator.Send(new FetchTransactions(x.Guid))))
+            .SelectMany(x => Observable.FromAsync(() => mediator.Send(new FetchTransactions(x.Guid))));
+
+        var searchText = this.WhenAnyValue(x => x.SearchText);
+
+        accountTransactions.CombineLatest(searchText)
+            .Select(x => x.Item1.Where(t => t.Description.Contains(x.Item2, StringComparison.OrdinalIgnoreCase)))
+            .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(x =>
             {
                 Transactions.Clear();
                 Transactions.AddRange(x);
             });
 
+        SelectAllCommand = ReactiveCommand.CreateFromTask(
+            execute: async () =>
+            {
+               foreach(var t in Transactions)
+               {
+                   t.IsSelected = true;
+               }
+            },
+            canExecute: accountTransactions.Select(t => t.Any()));
+
+
         MoveCommand = ReactiveCommand.CreateFromTask(async () =>
             {
-                await mediator.Send(new MoveTransactionsCommand(Transactions, SourceAccount.Guid, DestinationAccount.Guid));
+                await mediator.Send(new MoveTransactionsCommand(Transactions, SourceAccount.Guid,
+                    DestinationAccount.Guid));
+                _refreshRequested.OnNext(Unit.Default);
             }
         );
     }
@@ -72,6 +97,7 @@ public class MoveTransactionsHandler : IRequestHandler<MoveTransactionsCommand>
                 @"update splits set account_guid = @destinationGuid where guid = @splitGuid",
                 new { destinationGuid = request.DestinationGuid, splitGuid = transactionViewModel.SplitGuid });
         }
+
         transaction.Commit();
         return Task.CompletedTask;
     }

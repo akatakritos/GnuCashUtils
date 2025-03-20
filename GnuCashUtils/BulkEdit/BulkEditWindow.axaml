@@ -17,6 +17,8 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
+            <TextBox MinWidth="200" Text="{Binding SearchText}"/>
+            <Button Content="Select All" Command="{Binding SelectAllCommand}" />
         </StackPanel>
         
         
@@ -30,14 +32,20 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
             <Button Content="Move" Command="{Binding MoveCommand}" HorizontalAlignment="Right"/>
+            <TextBlock Text="{Binding Transactions.Count}"></TextBlock>
 
         </StackPanel>
         
         <DataGrid ItemsSource="{Binding Transactions}">
+            <DataGrid.Styles>
+                <Style Selector="DataGridCell.CurrencyCell">
+                    <Setter Property="TextBlock.TextAlignment" Value="Right"/>
+                </Style>
+            </DataGrid.Styles>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
+                <DataGridTextColumn Header="Date" Binding="{Binding Date,StringFormat=d}" />
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" />
-                <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" />
+                <DataGridTextColumn Header="Amount" Binding="{Binding Amount,StringFormat=c}" CellStyleClasses="CurrencyCell"/>
                 <DataGridCheckBoxColumn Header="Move?" Binding="{Binding IsSelected}" />
             </DataGrid.Columns>
         </DataGrid>
