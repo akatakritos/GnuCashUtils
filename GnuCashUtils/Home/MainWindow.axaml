@@ -15,10 +15,18 @@
         <home:MainWindowViewModel />
     </Design.DataContext>
 
-    <StackPanel>
-        <TextBox Text="/Users/mattburke/personal-copy.sqlite.gnucash" />
-        <Button Content="Backup" />
-        <Button Content="Bulk Edit Account" Command="{Binding BulkEditAccountCommand}" />
-    </StackPanel>
+    <Grid Margin="8" RowDefinitions="Auto Auto Auto" >
+        <DockPanel Grid.Row="0" Margin="0 0 0 8">
+            <Button Content="Open"  DockPanel.Dock="Right"  Margin="8 0 0 0" Click="Button_OnClick" />
+            <TextBox Text="{Binding GnuCashFile}" IsEnabled="False"/>
+        </DockPanel>
+        
+        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 0 0 8">
+            <Button Content="Backup" Command="{Binding BackupCommand}" Margin="0 0 8 0"/>
+            <TextBlock Text="{Binding CopyMessage}" VerticalAlignment="Center" Foreground="Green" />
+        </StackPanel>
+        
+        <Button Grid.Row="2" Content="Bulk Edit Account" Command="{Binding BulkEditAccountCommand}" />
+    </Grid>
 
 </Window>

@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Net;
 using Microsoft.Data.Sqlite;
 
 namespace GnuCashUtils.BulkEdit;
@@ -5,12 +8,20 @@ namespace GnuCashUtils.BulkEdit;
 public interface IDbConnectionFactory
 {
     public SqliteConnection GetConnection();
+    public void SetDatabase(string path);
 }
 
 public class SqliteConnectionFactory : IDbConnectionFactory
 {
+    private string _connectionString;
     public SqliteConnection GetConnection()
     {
-        return new SqliteConnection("Data Source=/Users/mattburke/personal-copy.sqlite.gnucash");
+        return new SqliteConnection(_connectionString);
+    }
+
+    public void SetDatabase(string path)
+    {
+        if (!File.Exists(path)) throw new Exception("Database file does not exist");
+        _connectionString = $"Data Source={path}";
     }
 }

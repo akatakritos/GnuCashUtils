@@ -20,25 +20,32 @@ namespace GnuCashUtils.BulkEdit;
 
 public partial class BulkEditWindowViewModel : ViewModelBase
 {
-    public IObservable<List<Account>> Accounts { get; }
-    [Reactive] private Account _sourceAccount;
-    [Reactive] private Account _destinationAccount;
-    [Reactive] private string _searchText = "";
-    public ObservableCollection<SelectableTransactionViewModel> Transactions { get; set; } = new();
+    [Reactive] public partial Account SourceAccount { get; set; }
+    [Reactive] public partial Account DestinationAccount { get; set; }
+    [Reactive] public partial string SearchText { get; set; }
+    private readonly Subject<Account> _refreshRequested = new();
+    
     public ReactiveCommand<Unit, Unit> MoveCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectAllCommand { get; }
-    private readonly Subject<Unit> _refreshRequested = new();
+    
+    public IObservable<List<Account>> Accounts { get; }
+    public ObservableCollection<SelectableTransactionViewModel> Transactions { get; } = new();
+    
+    public IObservable<int> TransactionCount { get; }
+    public IObservable<int> FilteredTransactionCount { get; }
+    public IObservable<int> SelectedTransactionCount { get; }
 
     public BulkEditWindowViewModel(IMediator? mediator = null)
     {
         mediator ??= Locator.Current.GetService<IMediator>();
+        SearchText = "";
         Accounts = Observable.FromAsync(() => mediator.Send(new FetchAccountsRequest()));
 
         var accountTransactions = this.WhenAnyValue(x => x.SourceAccount)
-            .CombineLatest(_refreshRequested.StartWith(Unit.Default))
-            .Select(x => x.Item1)
+            .Merge(_refreshRequested)
             .Where(x => x != null)
             .SelectMany(x => Observable.FromAsync(() => mediator.Send(new FetchTransactions(x.Guid))));
+
 
         var searchText = this.WhenAnyValue(x => x.SearchText);
 
@@ -50,23 +57,30 @@ public partial class BulkEditWindowViewModel : ViewModelBase
                 Transactions.Clear();
                 Transactions.AddRange(x);
             });
+        
+        
+        TransactionCount = accountTransactions.Select(t => t.Count);
+        FilteredTransactionCount = this.WhenAnyValue(x => x.Transactions)
+            .Select(t => t.Count);
+        SelectedTransactionCount = this.WhenAnyValue(x => x.Transactions)
+            .Select(t => t.Count(x => x.IsSelected));
 
-        SelectAllCommand = ReactiveCommand.CreateFromTask(
-            execute: async () =>
+        SelectAllCommand = ReactiveCommand.Create(
+            execute: () =>
             {
-               foreach(var t in Transactions)
-               {
-                   t.IsSelected = true;
-               }
+                foreach (var t in Transactions)
+                {
+                    t.IsSelected = true;
+                }
             },
-            canExecute: accountTransactions.Select(t => t.Any()));
+            canExecute: TransactionCount.Select(n => n > 0));
 
 
         MoveCommand = ReactiveCommand.CreateFromTask(async () =>
             {
                 await mediator.Send(new MoveTransactionsCommand(Transactions, SourceAccount.Guid,
                     DestinationAccount.Guid));
-                _refreshRequested.OnNext(Unit.Default);
+                _refreshRequested.OnNext(SourceAccount);
             }
         );
     }

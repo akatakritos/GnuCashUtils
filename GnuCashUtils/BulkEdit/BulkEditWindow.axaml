@@ -7,45 +7,54 @@
              x:DataType="bulkEdit:BulkEditWindowViewModel"
              x:Class="GnuCashUtils.BulkEdit.BulkEditWindow">
 
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock Text="Source Account" Margin="0 0 8 0"/>
-            <ComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding SourceAccount}" MinWidth="300">
+    <DockPanel Margin="8">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 0 0 8">
+            <TextBlock Text="Source Account" Margin="0 0 8 0" VerticalAlignment="Center"/>
+            <ComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding SourceAccount}" MinWidth="300"
+                      Margin="0 0 8 0">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <TextBox MinWidth="200" Text="{Binding SearchText}"/>
+            <TextBox MinWidth="200" Text="{Binding SearchText}" Margin="0 0 8 0"/>
             <Button Content="Select All" Command="{Binding SelectAllCommand}" />
         </StackPanel>
-        
-        
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock Text="Move To" Margin="0 0 8 0"/>
-            <ComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding DestinationAccount}" MinWidth="300">
+
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 8 0 0">
+            <TextBlock Text="Move To" Margin="0 0 8 0" VerticalAlignment="Center"/>
+            <ComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding DestinationAccount}" MinWidth="300"
+                      Margin="0 0 8 0">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Button Content="Move" Command="{Binding MoveCommand}" HorizontalAlignment="Right"/>
-            <TextBlock Text="{Binding Transactions.Count}"></TextBlock>
+            <Button Content="Move" Command="{Binding MoveCommand}" HorizontalAlignment="Right" Margin="0 0 8 0" />
+            <TextBlock VerticalAlignment="Center" TextAlignment="Right">
+                Showing
+                <TextBlock Text="{Binding FilteredTransactionCount^}" />
+                of
+                <TextBlock Text="{Binding TransactionCount^}" />.
+                <TextBlock Text="{Binding SelectedTransactionCount^}" /> selected.
+            </TextBlock>
 
         </StackPanel>
-        
+
         <DataGrid ItemsSource="{Binding Transactions}">
             <DataGrid.Styles>
                 <Style Selector="DataGridCell.CurrencyCell">
-                    <Setter Property="TextBlock.TextAlignment" Value="Right"/>
+                    <Setter Property="TextBlock.TextAlignment" Value="Right" />
                 </Style>
             </DataGrid.Styles>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date" Binding="{Binding Date,StringFormat=d}" />
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" />
-                <DataGridTextColumn Header="Amount" Binding="{Binding Amount,StringFormat=c}" CellStyleClasses="CurrencyCell"/>
+                <DataGridTextColumn Header="Amount" Binding="{Binding Amount,StringFormat=c}"
+                                    CellStyleClasses="CurrencyCell" />
                 <DataGridCheckBoxColumn Header="Move?" Binding="{Binding IsSelected}" />
             </DataGrid.Columns>
         </DataGrid>
