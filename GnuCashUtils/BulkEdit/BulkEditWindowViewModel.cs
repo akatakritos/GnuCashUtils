@@ -44,12 +44,20 @@ public partial class BulkEditWindowViewModel : ViewModelBase
         var accountTransactions = this.WhenAnyValue(x => x.SourceAccount)
             .Merge(_refreshRequested)
             .Where(x => x != null)
-            .SelectMany(x => Observable.FromAsync(() => mediator.Send(new FetchTransactions(x.Guid))));
+            .Select(x => x.Guid)
+            .Throttle(TimeSpan.FromMilliseconds(250))
+            .DistinctUntilChanged()
+            .Select(accountGuid =>
+                Observable.FromAsync((ct) => Task.Run(() => mediator.Send(new FetchTransactions(accountGuid), ct), ct)))
+            .Switch()
+            .Publish();
+        accountTransactions.Connect();
 
 
         var searchText = this.WhenAnyValue(x => x.SearchText);
 
-        accountTransactions.CombineLatest(searchText)
+        accountTransactions
+            .CombineLatest(searchText)
             .Select(x => x.Item1.Where(t => t.Description.Contains(x.Item2, StringComparison.OrdinalIgnoreCase)))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(x =>
@@ -178,6 +186,8 @@ public class FetchTransactionsHandler : IRequestHandler<FetchTransactions, List<
         CancellationToken cancellationToken)
     {
         using var connection = _dbConnectionFactory.GetConnection();
+        cancellationToken.ThrowIfCancellationRequested();
+        Console.WriteLine("query " + request.AccountGuid);
         var result = connection.Query<Dto>(
             @"select t.post_date as date, t.guid as transaction_guid, t.description, s.value_num, s.value_denom, s.guid as split_guid  from transactions t
 join splits s on s.tx_guid = t.guid
@@ -185,6 +195,7 @@ join accounts a on s.account_guid = a.guid
 where a.guid = @accountGuid
 order by t.post_date desc", new { accountGuid = request.AccountGuid });
 
+        cancellationToken.ThrowIfCancellationRequested();
         var converted = result.Select(r => new SelectableTransactionViewModel()
         {
             Date = r.Date,

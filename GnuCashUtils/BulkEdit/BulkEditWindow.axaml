@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:bulkEdit="clr-namespace:GnuCashUtils.BulkEdit"
+             xmlns:controls="clr-namespace:GnuCashUtils.Core.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="bulkEdit:BulkEditWindowViewModel"
              x:Class="GnuCashUtils.BulkEdit.BulkEditWindow">
@@ -10,14 +11,14 @@
     <DockPanel Margin="8">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 0 0 8">
             <TextBlock Text="Source Account" Margin="0 0 8 0" VerticalAlignment="Center"/>
-            <ComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding SourceAccount}" MinWidth="300"
-                      Margin="0 0 8 0">
+            <controls:AccountComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding SourceAccount}" MinWidth="300"
+                             Margin="0 0 8 0" >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
-            </ComboBox>
+            </controls:AccountComboBox>
             <TextBox MinWidth="200" Text="{Binding SearchText}" Margin="0 0 8 0"/>
             <Button Content="Select All" Command="{Binding SelectAllCommand}" />
         </StackPanel>
@@ -25,14 +26,14 @@
 
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 8 0 0">
             <TextBlock Text="Move To" Margin="0 0 8 0" VerticalAlignment="Center"/>
-            <ComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding DestinationAccount}" MinWidth="300"
-                      Margin="0 0 8 0">
+            <controls:AccountComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding DestinationAccount}" MinWidth="300"
+                             Margin="0 0 8 0">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
-            </ComboBox>
+            </controls:AccountComboBox>
             <Button Content="Move" Command="{Binding MoveCommand}" HorizontalAlignment="Right" Margin="0 0 8 0" />
             <TextBlock VerticalAlignment="Center" TextAlignment="Right">
                 Showing
