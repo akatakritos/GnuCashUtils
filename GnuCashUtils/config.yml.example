@@ -22,26 +22,24 @@ merchants:
   - name: "AWS"
     # Can use a simple contains matcher
     match: contains("AMAZON WEB SERVICES")
+    account: "Expenses:Subscriptions"
     
   - name: "Amazon"
     # can use a starts with matcher
     match: startswith("AMAZON")
+    account: "Expenses:Misc Merchandise"
     
     # can also use a comparison on amount
   - name: "QuickTrip Gas"
     match: contains("QT") and amount > 10
+    account: "Expenses:Auto:Gas"
     
   - name: "QuickTrip Snack"
     match: contains("QT") and amount <= 10
+    account: "Expenses:Dining:Quick Service"
     
   - name: "Coffee Shop"
     # oneof does contains operation
     match: oneof("coffee", "starbucks")
-    
-  - name: VS
-    match: contains("VICTORIA")
-    
-  - name: "1PASSWORD"
-    match: contains("1PASSWORD")
-    
+    account: "Expenses:Dining:Coffee Shops"
  

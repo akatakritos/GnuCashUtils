@@ -50,7 +50,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase
             {
                 var matcher = new MerchantMatcher(config.Merchants);
                 foreach (var row in Rows)
-                    row.Merchant = matcher.Match(row) ?? "";
+                    ApplyMatch(row, matcher.Match(row));
             });
     }
 
@@ -74,9 +74,17 @@ public partial class CategorizationWindowViewModel : ViewModelBase
         foreach (var row in rows)
         {
             var rowVm = new CategorizationRowViewModel(row.Date, row.Description, row.Amount, Accounts);
-            rowVm.Merchant = matcher.Match(rowVm) ?? "";
+            ApplyMatch(rowVm, matcher.Match(rowVm));
             Rows.Add(rowVm);
         }
+    }
+
+    private void ApplyMatch(CategorizationRowViewModel row, (string Name, string Account)? match)
+    {
+        row.Merchant = match?.Name ?? "";
+        row.SelectedAccount = match is not null
+            ? Accounts.FirstOrDefault(a => a.FullName == match.Value.Account)
+            : null;
     }
 }
 

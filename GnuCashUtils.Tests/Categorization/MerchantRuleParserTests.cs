@@ -277,8 +277,8 @@ public class MerchantRuleParserTests
             new MerchantConfig { Name = "Amazon", Match = @"startswith(""AMAZON"")" },
         ]);
 
-        matcher.Match(Row("AMAZON WEB SERVICES #1")).Should().Be("AWS");
-        matcher.Match(Row("AMAZON PRIME")).Should().Be("Amazon");
+        matcher.Match(Row("AMAZON WEB SERVICES #1"))!.Value.Name.Should().Be("AWS");
+        matcher.Match(Row("AMAZON PRIME"))!.Value.Name.Should().Be("Amazon");
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class MerchantRuleParserTests
             new MerchantConfig { Name = "AWS", Match = @"contains(""AMAZON"")" },
         ]);
 
-        matcher.Match(Row("AMAZON")).Should().Be("AWS");
+        matcher.Match(Row("AMAZON"))!.Value.Name.Should().Be("AWS");
     }
 
     [Fact]

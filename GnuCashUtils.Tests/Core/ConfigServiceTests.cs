@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using AwesomeAssertions;
 using GnuCashUtils.Core;
 
@@ -8,7 +10,7 @@ public class ConfigServiceTests
     [Fact]
     public void ItParsesDatabase()
     {
-        var svc = new ConfigService(Fixtures.File("config-full.yml"));
+        using var svc = new ConfigService(Fixtures.File("config-full.yml"));
 
         svc.CurrentConfig.Database.Should().Be("/data/test.gnucash");
     }
@@ -16,7 +18,7 @@ public class ConfigServiceTests
     [Fact]
     public void ItParsesBankCount()
     {
-        var svc = new ConfigService(Fixtures.File("config-full.yml"));
+        using var svc = new ConfigService(Fixtures.File("config-full.yml"));
 
         svc.CurrentConfig.Banks.Should().HaveCount(2);
     }
@@ -24,7 +26,7 @@ public class ConfigServiceTests
     [Fact]
     public void ItParsesBankFields()
     {
-        var svc = new ConfigService(Fixtures.File("config-full.yml"));
+        using var svc = new ConfigService(Fixtures.File("config-full.yml"));
 
         var discover = svc.CurrentConfig.Banks[0];
         discover.Name.Should().Be("Discover");
@@ -38,18 +40,17 @@ public class ConfigServiceTests
     }
 
     [Fact]
-    public void ItReturnsEmptyConfigWhenFileNotFound()
+    public void ItThrowsWhenFileNotFound()
     {
-        var svc = new ConfigService("/nonexistent/path/config.yml");
+        var act = () => new ConfigService("/nonexistent/path/config.yml");
 
-        svc.CurrentConfig.Database.Should().BeEmpty();
-        svc.CurrentConfig.Banks.Should().BeEmpty();
+        act.Should().Throw<IOException>();
     }
 
     [Fact]
     public void ItParsesConfigWithNoBanks()
     {
-        var svc = new ConfigService(Fixtures.File("config-no-banks.yml"));
+        using var svc = new ConfigService(Fixtures.File("config-no-banks.yml"));
 
         svc.CurrentConfig.Database.Should().Be("/data/test.gnucash");
         svc.CurrentConfig.Banks.Should().BeEmpty();
@@ -58,7 +59,7 @@ public class ConfigServiceTests
     [Fact]
     public void ConfigObservableEmitsCurrentValueOnSubscribe()
     {
-        var svc = new ConfigService(Fixtures.File("config-full.yml"));
+        using var svc = new ConfigService(Fixtures.File("config-full.yml"));
 
         AppConfig? received = null;
         svc.Config.Subscribe(c => received = c);
@@ -70,7 +71,7 @@ public class ConfigServiceTests
     [Fact]
     public void CurrentConfigAndObservableAreConsistent()
     {
-        var svc = new ConfigService(Fixtures.File("config-full.yml"));
+        using var svc = new ConfigService(Fixtures.File("config-full.yml"));
 
         AppConfig? observed = null;
         svc.Config.Subscribe(c => observed = c);

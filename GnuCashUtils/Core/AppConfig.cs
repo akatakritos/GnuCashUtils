@@ -21,4 +21,5 @@ public class MerchantConfig
 {
     public string Name { get; set; } = "";
     public string Match { get; set; } = "";
+    public string Account { get; set; } = "";
 }
