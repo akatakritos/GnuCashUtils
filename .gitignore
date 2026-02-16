@@ -3,3 +3,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+GnuCashUtils/config.yml
+.claude/settings.local.json
+GnuCashUtils.sln.DotSettings.user
