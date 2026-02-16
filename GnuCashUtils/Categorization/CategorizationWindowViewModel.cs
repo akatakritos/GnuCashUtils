@@ -42,6 +42,16 @@ public partial class CategorizationWindowViewModel : ViewModelBase
                         Accounts.Add(a);
                 });
         }
+
+        _configService.Config
+            .Skip(1)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(config =>
+            {
+                var matcher = new MerchantMatcher(config.Merchants);
+                foreach (var row in Rows)
+                    row.Merchant = matcher.Match(row) ?? "";
+            });
     }
 
     public async Task LoadCsv(string filePath)
