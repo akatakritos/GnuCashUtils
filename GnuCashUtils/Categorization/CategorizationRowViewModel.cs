@@ -9,12 +9,12 @@ namespace GnuCashUtils.Categorization;
 
 public partial class CategorizationRowViewModel : ViewModelBase
 {
-    [Reactive] public partial DateOnly Date { get; set; }
+    public DateOnly Date { get; init; }
     [Reactive] public partial string Description { get; set; }
-    [Reactive] public partial decimal Amount { get; set; }
+    public decimal Amount { get; init; }
     [Reactive] public partial string Merchant { get; set; }
     [Reactive] public partial Account? SelectedAccount { get; set; }
-    [Reactive] public partial bool IsManuallyEdited { get; set; }
+    public bool IsManuallyEdited { get; private set; }
     
     private readonly ObservableAsPropertyHelper<bool> _isValid;
     public bool IsValid => _isValid.Value;
@@ -44,20 +44,21 @@ public partial class CategorizationRowViewModel : ViewModelBase
 
         this.WhenAnyValue(x => x.Description)
             .Skip(1)
-            .Subscribe(_ => { if (!_applyingConfig) IsManuallyEdited = true; });
+            .Subscribe(_ => { IsManuallyEdited = true; });
 
         this.WhenAnyValue(x => x.Merchant)
             .Skip(1)
-            .Subscribe(_ => { if (!_applyingConfig) IsManuallyEdited = true; });
+            .Subscribe(_ => {  IsManuallyEdited = true; });
 
         this.WhenAnyValue(x => x.SelectedAccount)
             .Skip(1)
-            .Subscribe(_ => { if (!_applyingConfig) IsManuallyEdited = true; });
+            .Subscribe(_ => { IsManuallyEdited = true; });
     }
 
     public void SetFromConfig(string merchant, Account? account)
     {
         Merchant = merchant;
         SelectedAccount = account;
+        IsManuallyEdited = false;
     }
 }

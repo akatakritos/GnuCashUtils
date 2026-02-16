@@ -142,4 +142,19 @@ public class CategorizationWindowViewModelTests
         vm.ShowOnlyErrors = false;
         vm.Rows.Should().HaveCount(3);
     }
+
+    [Fact]
+    public async Task ItAppliesMerchantMatchWhenLoadingCsv()
+    {
+        var (vm, _) = Build(match: SampleConfig, merchants: SampleMerchants);
+        await vm.LoadCsv(Fixtures.File("sample.csv"));
+
+        var groceryRow = vm.Rows.Single(r => r.Description == "Grocery Store");
+        groceryRow.Merchant.Should().Be("Grocery Store");
+        groceryRow.SelectedAccount.Should().NotBeNull();
+        groceryRow.SelectedAccount!.FullName.Should().Be("Expenses:Groceries");
+        groceryRow.IsValid.Should().BeTrue();
+
+        vm.Rows.Where(r => r.Description != "Grocery Store").Should().OnlyContain(r => !r.IsValid);
+    }
 }
