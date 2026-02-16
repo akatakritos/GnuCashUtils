@@ -44,7 +44,4 @@ merchants:
   - name: "1PASSWORD"
     match: contains("1PASSWORD")
     
-  - name: "Unknown"
-    # can use a regex matcher
-    match: regex(".")
  
