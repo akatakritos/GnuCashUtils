@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
+using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Core;
+using MediatR;
+using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using Splat;
 
 namespace GnuCashUtils.Categorization;
 
@@ -13,12 +18,25 @@ public partial class CategorizationWindowViewModel : ViewModelBase
 {
     [Reactive] public partial string CsvFilePath { get; set; }
     [Reactive] public partial IReadOnlyList<string> Headers { get; set; }
-    public ObservableCollection<string[]> Rows { get; } = new();
+    public ObservableCollection<Account> Accounts { get; } = new();
+    public ObservableCollection<CategorizationRowViewModel> Rows { get; } = new();
 
-    public CategorizationWindowViewModel()
+    public CategorizationWindowViewModel(IMediator? mediator = null)
     {
         CsvFilePath = "";
         Headers = [];
+
+        mediator ??= Locator.Current.GetService<IMediator>();
+        if (mediator != null)
+        {
+            Observable.FromAsync(() => mediator.Send(new FetchAccountsRequest()))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(accounts =>
+                {
+                    foreach (var a in accounts)
+                        Accounts.Add(a);
+                });
+        }
     }
 
     public void LoadCsv(string filePath)
@@ -28,7 +46,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase
         Headers = headers;
         Rows.Clear();
         foreach (var row in rows)
-            Rows.Add(row);
+            Rows.Add(new CategorizationRowViewModel(row, Accounts));
     }
 
     private static (IReadOnlyList<string> headers, List<string[]> rows) ParseCsv(string filePath)
@@ -39,8 +57,8 @@ public partial class CategorizationWindowViewModel : ViewModelBase
         var parsedLines = lines.Select(SplitCsvLine).ToArray();
         var fieldCounts = parsedLines.Select(f => f.Length).ToArray();
 
-        // Find the most common field count among lines with >= 2 fields
-        // Lines in the preamble tend to be free-form text with 0 or 1 fields
+        // Find the most common field count among lines with >= 2 fields.
+        // Lines in the preamble tend to be free-form text with 0 or 1 fields.
         var mode = fieldCounts
             .Where(c => c >= 2)
             .GroupBy(c => c)
@@ -111,5 +129,20 @@ public partial class CategorizationWindowViewModel : ViewModelBase
 
         fields.Add(current.ToString().Trim());
         return [.. fields];
+    }
+}
+
+public partial class CategorizationRowViewModel : ViewModelBase
+{
+    public string[] CsvFields { get; }
+    public ObservableCollection<Account> Accounts { get; }
+    [Reactive] public partial string Merchant { get; set; }
+    [Reactive] public partial Account? SelectedAccount { get; set; }
+
+    public CategorizationRowViewModel(string[] csvFields, ObservableCollection<Account> accounts)
+    {
+        CsvFields = csvFields;
+        Accounts = accounts;
+        Merchant = "";
     }
 }

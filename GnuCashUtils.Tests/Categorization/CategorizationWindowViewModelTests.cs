@@ -13,7 +13,7 @@ public class CategorizationWindowViewModelTests
 
         vm.Headers.Should().Equal(["Date", "Description", "Amount"]);
         vm.Rows.Should().HaveCount(3);
-        vm.Rows[0].Should().Equal(["2024-01-15", "Grocery Store", "-45.00"]);
+        vm.Rows[0].CsvFields.Should().Equal(["2024-01-15", "Grocery Store", "-45.00"]);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class CategorizationWindowViewModelTests
 
         vm.Headers.Should().Equal(["Date", "Description", "Amount", "Balance"]);
         vm.Rows.Should().HaveCount(2);
-        vm.Rows[0].Should().Equal(["2024-01-15", "Grocery Store", "-45.00", "955.00"]);
+        vm.Rows[0].CsvFields.Should().Equal(["2024-01-15", "Grocery Store", "-45.00", "955.00"]);
     }
 
     [Fact]
@@ -37,8 +37,8 @@ public class CategorizationWindowViewModelTests
 
         vm.Headers.Should().Equal(["Date", "Description", "Amount"]);
         vm.Rows.Should().HaveCount(3);
-        vm.Rows[0][1].Should().Be("Coffee, Snacks");
-        vm.Rows[1][1].Should().Be("Dinner, Drinks");
+        vm.Rows[0].CsvFields[1].Should().Be("Coffee, Snacks");
+        vm.Rows[1].CsvFields[1].Should().Be("Dinner, Drinks");
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class CategorizationWindowViewModelTests
         vm.LoadCsv(Fixtures.File("quoted.csv"));
 
         // "Transfer ""savings""" should parse to: Transfer "savings"
-        vm.Rows[2][1].Should().Be("Transfer \"savings\"");
+        vm.Rows[2].CsvFields[1].Should().Be("Transfer \"savings\"");
     }
 
     [Fact]
@@ -69,5 +69,24 @@ public class CategorizationWindowViewModelTests
         vm.LoadCsv(path);
 
         vm.CsvFilePath.Should().Be(path);
+    }
+
+    [Fact]
+    public void RowsShareTheAccountsCollection()
+    {
+        var vm = new CategorizationWindowViewModel();
+        vm.LoadCsv(Fixtures.File("sample.csv"));
+
+        // All rows reference the same Accounts collection as the ViewModel
+        vm.Rows.Should().AllSatisfy(row => row.Accounts.Should().BeSameAs(vm.Accounts));
+    }
+
+    [Fact]
+    public void MerchantDefaultsToEmpty()
+    {
+        var vm = new CategorizationWindowViewModel();
+        vm.LoadCsv(Fixtures.File("sample.csv"));
+
+        vm.Rows.Should().AllSatisfy(row => row.Merchant.Should().BeEmpty());
     }
 }

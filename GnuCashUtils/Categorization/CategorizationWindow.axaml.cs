@@ -11,6 +11,8 @@ namespace GnuCashUtils.Categorization;
 
 public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowViewModel>
 {
+    private int _dynamicColumnCount;
+
     public CategorizationWindow()
     {
         InitializeComponent();
@@ -41,15 +43,23 @@ public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowV
 
     private void RebuildColumns(IReadOnlyList<string>? headers)
     {
-        CsvDataGrid.Columns.Clear();
+        // Remove previously inserted dynamic columns from the front,
+        // leaving the fixed Merchant and Account columns untouched.
+        for (int i = 0; i < _dynamicColumnCount; i++)
+            CsvDataGrid.Columns.RemoveAt(0);
+
+        _dynamicColumnCount = headers?.Count ?? 0;
         if (headers is null) return;
 
+        // Insert CSV columns at the front in order
         for (int i = 0; i < headers.Count; i++)
         {
-            CsvDataGrid.Columns.Add(new DataGridTextColumn
+            CsvDataGrid.Columns.Insert(i, new DataGridTextColumn
             {
                 Header = headers[i],
-                Binding = new Binding($"[{i}]"),
+                Binding = new Binding($"CsvFields[{i}]"),
+                IsReadOnly = true,
+                FontSize = 12
             });
         }
     }
