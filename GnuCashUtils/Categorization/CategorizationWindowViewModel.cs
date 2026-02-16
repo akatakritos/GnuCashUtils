@@ -58,10 +58,15 @@ public partial class CategorizationWindowViewModel : ViewModelBase
         }
 
         var rows = await _mediator!.Send(new ParseCsvRequest(filePath, bankConfig));
+        var matcher = new MerchantMatcher(_configService.CurrentConfig.Merchants);
 
         Rows.Clear();
         foreach (var row in rows)
-            Rows.Add(new CategorizationRowViewModel(row.Date, row.Description, row.Amount, Accounts));
+        {
+            var rowVm = new CategorizationRowViewModel(row.Date, row.Description, row.Amount, Accounts);
+            rowVm.Merchant = matcher.Match(rowVm) ?? "";
+            Rows.Add(rowVm);
+        }
     }
 }
 

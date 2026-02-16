@@ -15,3 +15,30 @@ banks:
     skip: 7
     headers: "{date:MM/dd/yyyy},{description},{amount},_"
       
+      
+# merchants defines matchers to identify a merchant from a transaction description
+# the first matching matcher is used. matchers are case insensitive
+merchants:
+  - name: "AWS"
+    # Can use a simple contains matcher
+    match: contains("AMAZON WEB SERVICES")
+    
+  - name: "Amazon"
+    # can use a starts with matcher
+    match: startswith("AMAZON")
+    
+    # can also use a comparison on amount
+  - name: "QuickTrip Gas"
+    match: contains("QT") and amount > 10
+    
+  - name: "QuickTrip Snack"
+    match: contains("QT") and amount <= 10
+    
+  - name: "Coffee Shop"
+    # oneof does contains operation
+    match: oneof("coffee", "starbucks")
+    
+  - name: "Unknown"
+    # can use a regex matcher
+    match: regex(".")
+ 
