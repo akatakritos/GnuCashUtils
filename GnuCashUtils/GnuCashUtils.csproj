@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**"/>
+        <AvaloniaResource Include="Assets\**" />
     </ItemGroup>
 
     <ItemGroup>
@@ -29,6 +29,7 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="15.3.1" />
+        <PackageReference Include="YamlDotNet" Version="16.3.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -40,5 +41,11 @@
         <DependentUpon>BulkEditWindow.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="config.yml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>

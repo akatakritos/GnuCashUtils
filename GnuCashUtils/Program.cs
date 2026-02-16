@@ -3,6 +3,7 @@ using Avalonia.ReactiveUI;
 using System;
 using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
+using GnuCashUtils.Core;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Splat.Microsoft.Extensions.DependencyInjection;
@@ -41,6 +42,7 @@ sealed class Program
         services.AddTransient<IViewFor<BulkEditWindowViewModel>, BulkEditWindow>();
         services.AddTransient<IViewFor<CategorizationWindowViewModel>, CategorizationWindow>();
         services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
+        services.AddSingleton<IConfigService, ConfigService>();
         services.UseMicrosoftDependencyResolver();
     }
 }

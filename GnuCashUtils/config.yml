@@ -1,0 +1,17 @@
+# the path to the gnucash file (sqlite format)
+database: "/Users/mattburke/Documents/gnucash/test.gnucash"
+  
+# banks define matchers for csv files that we can process and tell us which preamble rows to skip
+banks:
+  - name: Discover
+    match: "Discover-Statement-\\d+\\.csv$"
+    # include the built in header row
+    skip: 1
+    # this means the csv is in Date,(ignored),Description,Amount,(ignored) columns. The date can be parsed using the provided C# format string
+    headers: "{date:mm/DD/yyyy},_,{description},{amount},_"
+      
+  - name: Bank of America
+    match: "stmt-\\d++\\.csv$"
+    skip: 7
+    headers: "{date:MM/dd/yyyy},{description},{amount},_"
+      

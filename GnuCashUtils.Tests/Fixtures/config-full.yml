@@ -1,0 +1,12 @@
+database: "/data/test.gnucash"
+
+banks:
+  - name: Discover
+    match: "Discover-Statement-\\d+\\.csv$"
+    skip: 1
+    headers: "{date:mm/DD/yyyy},_,{description},{amount},_"
+
+  - name: Bank of America
+    match: "stmt-\\d+\\.csv$"
+    skip: 7
+    headers: "{date:MM/dd/yyyy},{description},{amount},_"

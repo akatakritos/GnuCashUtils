@@ -27,10 +27,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [Reactive] public partial string GnuCashFile { get; set; }
     [Reactive] public partial string CopyMessage { get; set; }
     
-    public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null)
+    public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null, IConfigService? configService = null)
     {
         dbConnectionFactory ??= Locator.Current.GetService<IDbConnectionFactory>();
-        GnuCashFile = "/Users/mattburke/Documents/gnucash/test.gnucash";
+        configService ??= Locator.Current.GetService<IConfigService>();
+        GnuCashFile = configService!.CurrentConfig.Database;
         dbConnectionFactory.SetDatabase(GnuCashFile);
 
 
