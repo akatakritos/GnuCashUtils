@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GnuCashUtils", "GnuCashUtils\GnuCashUtils.csproj", "{2A47C1B4-0F48-49A6-BB57-7E85A0632446}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GnuCashUtils.Tests", "GnuCashUtils.Tests\GnuCashUtils.Tests.csproj", "{22A04FBB-3CEA-43EA-A314-191B72BAD9FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{2A47C1B4-0F48-49A6-BB57-7E85A0632446}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A47C1B4-0F48-49A6-BB57-7E85A0632446}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A47C1B4-0F48-49A6-BB57-7E85A0632446}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22A04FBB-3CEA-43EA-A314-191B72BAD9FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22A04FBB-3CEA-43EA-A314-191B72BAD9FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22A04FBB-3CEA-43EA-A314-191B72BAD9FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22A04FBB-3CEA-43EA-A314-191B72BAD9FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

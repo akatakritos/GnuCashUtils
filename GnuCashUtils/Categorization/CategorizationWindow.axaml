@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:categorization="clr-namespace:GnuCashUtils.Categorization"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+        x:Class="GnuCashUtils.Categorization.CategorizationWindow"
+        x:DataType="categorization:CategorizationWindowViewModel"
+        Title="Categorization">
+
+    <DockPanel Margin="8">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0 0 0 8">
+            <Button Content="Open CSV" Click="OpenCsvButton_Click" Margin="0 0 8 0" />
+            <TextBlock Text="{Binding CsvFilePath}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <DataGrid x:Name="CsvDataGrid"
+                  ItemsSource="{Binding Rows}"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True"
+                  IsReadOnly="True" />
+    </DockPanel>
+
+</Window>

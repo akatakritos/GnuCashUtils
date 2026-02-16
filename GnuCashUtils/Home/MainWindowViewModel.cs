@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using GnuCashUtils.BulkEdit;
+using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -20,6 +21,7 @@ public partial class MainWindowViewModel : ViewModelBase
 #pragma warning restore CA1822 // Mark members as static
     
     public ReactiveCommand<Unit, Unit> BulkEditAccountCommand { get; }
+    public ReactiveCommand<Unit, Unit> CategorizationCommand { get; }
     public ReactiveCommand<Unit, Unit> BackupCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenCommand { get; }
     [Reactive] public partial string GnuCashFile { get; set; }
@@ -28,7 +30,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null)
     {
         dbConnectionFactory ??= Locator.Current.GetService<IDbConnectionFactory>();
-        GnuCashFile = "/Users/mattburke/personal-copy.sqlite.gnucash";
+        GnuCashFile = "/Users/mattburke/Documents/gnucash/test.gnucash";
         dbConnectionFactory.SetDatabase(GnuCashFile);
 
 
@@ -44,6 +46,20 @@ public partial class MainWindowViewModel : ViewModelBase
             var view = viewLocator!.ResolveView(viewModel);
 
             if (view is not ReactiveWindow<BulkEditWindowViewModel> window)
+                throw new Exception("ViewModel does not have associated Window");
+
+            window.ViewModel = viewModel;
+            window.Show();
+            return Unit.Default;
+        });
+
+        CategorizationCommand = ReactiveCommand.Create(() =>
+        {
+            var viewLocator = Locator.Current.GetService<IViewLocator>();
+            var viewModel = new CategorizationWindowViewModel();
+            var view = viewLocator!.ResolveView(viewModel);
+
+            if (view is not ReactiveWindow<CategorizationWindowViewModel> window)
                 throw new Exception("ViewModel does not have associated Window");
 
             window.ViewModel = viewModel;

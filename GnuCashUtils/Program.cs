@@ -2,6 +2,7 @@
 using Avalonia.ReactiveUI;
 using System;
 using GnuCashUtils.BulkEdit;
+using GnuCashUtils.Categorization;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Splat.Microsoft.Extensions.DependencyInjection;
@@ -38,7 +39,8 @@ sealed class Program
         var services = new ServiceCollection();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
         services.AddTransient<IViewFor<BulkEditWindowViewModel>, BulkEditWindow>();
-            services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
+        services.AddTransient<IViewFor<CategorizationWindowViewModel>, CategorizationWindow>();
+        services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
         services.UseMicrosoftDependencyResolver();
     }
 }
