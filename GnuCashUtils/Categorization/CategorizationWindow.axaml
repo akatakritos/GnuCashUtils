@@ -22,7 +22,19 @@
                   FontSize="12">
             <DataGrid.Columns>
 
-                <!-- CSV columns are prepended dynamically in code-behind -->
+                <DataGridTextColumn Header="Date"
+                                    Binding="{Binding Date}"
+                                    IsReadOnly="True"
+                                    Width="100" />
+
+                <DataGridTextColumn Header="Description"
+                                    Binding="{Binding Description}"
+                                    Width="280" />
+
+                <DataGridTextColumn Header="Amount"
+                                    Binding="{Binding Amount}"
+                                    IsReadOnly="True"
+                                    Width="100" />
 
                 <DataGridTextColumn Header="Merchant"
                                     Binding="{Binding Merchant}"

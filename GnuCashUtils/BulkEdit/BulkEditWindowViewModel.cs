@@ -20,8 +20,8 @@ namespace GnuCashUtils.BulkEdit;
 
 public partial class BulkEditWindowViewModel : ViewModelBase
 {
-    [Reactive] public partial Account SourceAccount { get; set; }
-    [Reactive] public partial Account DestinationAccount { get; set; }
+    [Reactive] public partial Account? SourceAccount { get; set; }
+    [Reactive] public partial Account? DestinationAccount { get; set; }
     [Reactive] public partial string SearchText { get; set; }
     private readonly Subject<Account> _refreshRequested = new();
     
@@ -37,14 +37,15 @@ public partial class BulkEditWindowViewModel : ViewModelBase
 
     public BulkEditWindowViewModel(IMediator? mediator = null)
     {
-        mediator ??= Locator.Current.GetService<IMediator>();
+        mediator ??= Locator.Current.GetService<IMediator>()!;
         SearchText = "";
         Accounts = Observable.FromAsync(() => mediator.Send(new FetchAccountsRequest()));
+        
 
         var accountTransactions = this.WhenAnyValue(x => x.SourceAccount)
             .Merge(_refreshRequested)
             .Where(x => x != null)
-            .Select(x => x.Guid)
+            .Select(x => x!.Guid)
             .Throttle(TimeSpan.FromMilliseconds(250))
             .DistinctUntilChanged()
             .Select(accountGuid =>
@@ -58,7 +59,7 @@ public partial class BulkEditWindowViewModel : ViewModelBase
 
         accountTransactions
             .CombineLatest(searchText)
-            .Select(x => x.Item1.Where(t => t.Description.Contains(x.Item2, StringComparison.OrdinalIgnoreCase)))
+            .Select(x => x.Item1.Where(t => t.Description?.Contains(x.Item2, StringComparison.OrdinalIgnoreCase) == true))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(x =>
             {
@@ -86,6 +87,8 @@ public partial class BulkEditWindowViewModel : ViewModelBase
 
         MoveCommand = ReactiveCommand.CreateFromTask(async () =>
             {
+                if (SourceAccount == null || DestinationAccount == null) return;
+                
                 await mediator.Send(new MoveTransactionsCommand(Transactions, SourceAccount.Guid,
                     DestinationAccount.Guid));
                 _refreshRequested.OnNext(SourceAccount);
@@ -131,17 +134,17 @@ public partial class SelectableTransactionViewModel : ViewModelBase
     [Reactive] private decimal _amount;
     [Reactive] private DateTime _date;
     [Reactive] private bool _isSelected;
-    [Reactive] private string _transactionGuid;
+    [Reactive] private string _transactionGuid = "";
     [Reactive] private string? _splitGuid;
     [Reactive] private string? _accountGuid;
 }
 
 public class Account
 {
-    public string Guid { get; set; }
-    public string Name { get; set; }
-    public string ParentGuid { get; set; }
-    public string FullName { get; set; }
+    public string Guid { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string ParentGuid { get; set; } = "";
+    public string FullName { get; set; } = "";
 }
 
 public record FetchAccountsRequest() : IRequest<List<Account>>;
@@ -211,10 +214,10 @@ order by t.post_date desc", new { accountGuid = request.AccountGuid });
     public class Dto
     {
         public DateTime Date { get; set; }
-        public string TransactionGuid { get; set; }
-        public string Description { get; set; }
+        public string TransactionGuid { get; set; } = "";
+        public string Description { get; set; } = "";
         public long ValueNum { get; set; }
         public long ValueDenom { get; set; }
-        public string SplitGuid { get; set; }
+        public string SplitGuid { get; set; } = "";
     }
 }

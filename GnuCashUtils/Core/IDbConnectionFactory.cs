@@ -1,9 +1,8 @@
 using System;
 using System.IO;
-using System.Net;
 using Microsoft.Data.Sqlite;
 
-namespace GnuCashUtils.BulkEdit;
+namespace GnuCashUtils.Core;
 
 public interface IDbConnectionFactory
 {
@@ -13,7 +12,7 @@ public interface IDbConnectionFactory
 
 public class SqliteConnectionFactory : IDbConnectionFactory
 {
-    private string _connectionString;
+    private string _connectionString = "";
     public SqliteConnection GetConnection()
     {
         return new SqliteConnection(_connectionString);

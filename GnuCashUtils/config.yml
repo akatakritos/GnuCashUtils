@@ -8,10 +8,10 @@ banks:
     # include the built in header row
     skip: 1
     # this means the csv is in Date,(ignored),Description,Amount,(ignored) columns. The date can be parsed using the provided C# format string
-    headers: "{date:mm/DD/yyyy},_,{description},{amount},_"
+    headers: "{date:MM/dd/yyyy},_,{description},{amount},_"
       
   - name: Bank of America
-    match: "stmt-\\d++\\.csv$"
+    match: "stmt-\\d+\\.csv$"
     skip: 7
     headers: "{date:MM/dd/yyyy},{description},{amount},_"
       

@@ -1,8 +1,10 @@
-using System;
-using System.Collections.Generic;
+using System.Reactive;
+using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Data;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using ReactiveUI;
@@ -11,15 +13,16 @@ namespace GnuCashUtils.Categorization;
 
 public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowViewModel>
 {
-    private int _dynamicColumnCount;
-
     public CategorizationWindow()
     {
         InitializeComponent();
-        this.WhenActivated(_ =>
+        this.WhenActivated(d =>
         {
-            this.WhenAnyValue(x => x.ViewModel!.Headers)
-                .Subscribe(RebuildColumns);
+            d(ViewModel!.ShowError.RegisterHandler(async ctx =>
+            {
+                await ShowErrorDialog(ctx.Input);
+                ctx.SetOutput(Unit.Default);
+            }));
         });
     }
 
@@ -37,30 +40,31 @@ public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowV
 
         if (result.Count > 0)
         {
-            ViewModel!.LoadCsv(result[0].Path.AbsolutePath);
+            await ViewModel!.LoadCsv(result[0].Path.AbsolutePath);
         }
     }
 
-    private void RebuildColumns(IReadOnlyList<string>? headers)
+    private async Task ShowErrorDialog(string message)
     {
-        // Remove previously inserted dynamic columns from the front,
-        // leaving the fixed Merchant and Account columns untouched.
-        for (int i = 0; i < _dynamicColumnCount; i++)
-            CsvDataGrid.Columns.RemoveAt(0);
-
-        _dynamicColumnCount = headers?.Count ?? 0;
-        if (headers is null) return;
-
-        // Insert CSV columns at the front in order
-        for (int i = 0; i < headers.Count; i++)
+        var okButton = new Button { Content = "OK", HorizontalAlignment = HorizontalAlignment.Center };
+        var dialog = new Window
         {
-            CsvDataGrid.Columns.Insert(i, new DataGridTextColumn
+            Title = "Error",
+            SizeToContent = SizeToContent.WidthAndHeight,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
+            Content = new StackPanel
             {
-                Header = headers[i],
-                Binding = new Binding($"CsvFields[{i}]"),
-                IsReadOnly = true,
-                FontSize = 12
-            });
-        }
+                Margin = new Thickness(20),
+                Spacing = 12,
+                Children =
+                {
+                    new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap, MaxWidth = 360 },
+                    okButton
+                }
+            }
+        };
+        okButton.Click += (_, _) => dialog.Close();
+        await dialog.ShowDialog(this);
     }
 }

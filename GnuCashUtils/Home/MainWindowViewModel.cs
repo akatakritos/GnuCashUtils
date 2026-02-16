@@ -23,16 +23,16 @@ public partial class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BulkEditAccountCommand { get; }
     public ReactiveCommand<Unit, Unit> CategorizationCommand { get; }
     public ReactiveCommand<Unit, Unit> BackupCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenCommand { get; }
     [Reactive] public partial string GnuCashFile { get; set; }
     [Reactive] public partial string CopyMessage { get; set; }
     
     public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null, IConfigService? configService = null)
     {
-        dbConnectionFactory ??= Locator.Current.GetService<IDbConnectionFactory>();
+        dbConnectionFactory ??= Locator.Current.GetService<IDbConnectionFactory>()!;
         configService ??= Locator.Current.GetService<IConfigService>();
         GnuCashFile = configService!.CurrentConfig.Database;
         dbConnectionFactory.SetDatabase(GnuCashFile);
+        _copyMessage = "";
 
 
         if (Design.IsDesignMode)
