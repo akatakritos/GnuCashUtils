@@ -22,13 +22,24 @@ public class ConfigService : IConfigService, IDisposable
     public IObservable<AppConfig> Config => _config;
     public AppConfig CurrentConfig => _config.Value;
 
+    private static string DefaultConfigPath()
+    {
+        var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+        var configDir = xdgConfigHome is { Length: > 0 }
+            ? xdgConfigHome
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config");
+        return Path.Combine(configDir, "GnuCashUtils", "config.yml");
+    }
+
     public ConfigService(string? configPath = null)
     {
-        _configPath = configPath ?? Path.Combine(AppContext.BaseDirectory, "config.yml");
+        _configPath = configPath ?? DefaultConfigPath();
         _config = new BehaviorSubject<AppConfig>(Load(_configPath));
 
-        var dir = Path.GetDirectoryName(_configPath);
-        var file = Path.GetFileName(_configPath);
+        // Resolve symlinks so the watcher sees changes to the real file, not just the link entry
+        var resolvedPath = File.ResolveLinkTarget(_configPath, returnFinalTarget: true)?.FullName ?? _configPath;
+        var dir = Path.GetDirectoryName(resolvedPath);
+        var file = Path.GetFileName(resolvedPath);
         if (dir != null && Directory.Exists(dir))
         {
             _watcher = new FileSystemWatcher(dir, file)
