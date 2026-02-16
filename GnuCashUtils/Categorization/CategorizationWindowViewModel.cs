@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DynamicData;
 using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Core;
 using MediatR;
@@ -22,26 +23,36 @@ public partial class CategorizationWindowViewModel : ViewModelBase
     private readonly IConfigService _configService;
 
     [Reactive] public partial string CsvFilePath { get; set; }
+    [Reactive] public partial bool ShowOnlyErrors { get; set; }
     public ObservableCollection<Account> Accounts { get; } = new();
-    public ObservableCollection<CategorizationRowViewModel> Rows { get; } = new();
     public Interaction<string, Unit> ShowError { get; } = new();
+
+    private readonly SourceCache<CategorizationRowViewModel, int> _source = new(row => row.CsvIndex);
+    private readonly ReadOnlyObservableCollection<CategorizationRowViewModel> _filteredRows;
+    public ReadOnlyObservableCollection<CategorizationRowViewModel> Rows => _filteredRows;
 
     public CategorizationWindowViewModel(IMediator? mediator = null, IConfigService? configService = null)
     {
         CsvFilePath = "";
         _configService = configService ?? Locator.Current.GetService<IConfigService>() ?? new ConfigService();
-        _mediator = mediator ?? Locator.Current.GetService<IMediator>();
+        _mediator = mediator ?? Locator.Current.GetService<IMediator>()!;
 
-        if (_mediator != null)
-        {
-            Observable.FromAsync(() => _mediator.Send(new FetchAccountsRequest()))
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(accounts =>
-                {
-                    foreach (var a in accounts)
-                        Accounts.Add(a);
-                });
-        }
+        var filter = this.WhenAnyValue(x => x.ShowOnlyErrors)
+            .Select(showOnlyErrors => showOnlyErrors ? new Func<CategorizationRowViewModel, bool>(row => !row.IsValid) : _ => true);
+
+        _source.Connect()
+            .Filter(filter)
+            .Sort(Comparer<CategorizationRowViewModel>.Create((a, b) => a.CsvIndex.CompareTo(b.CsvIndex)))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out _filteredRows)
+            .Subscribe();
+
+        Observable.FromAsync(() => _mediator.Send(new FetchAccountsRequest()))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(accounts =>
+            {
+                Accounts.AddRange(accounts);
+            });
 
         _configService.Config
             .Skip(1)
@@ -49,8 +60,11 @@ public partial class CategorizationWindowViewModel : ViewModelBase
             .Subscribe(config =>
             {
                 var matcher = new MerchantMatcher(config.Merchants);
-                foreach (var row in Rows)
-                    ApplyMatch(row, matcher.Match(row));
+                foreach (var row in _source.Items)
+                {
+                    if (!row.IsManuallyEdited)
+                        ApplyMatch(row, matcher.Match(row));
+                }
             });
     }
 
@@ -70,21 +84,25 @@ public partial class CategorizationWindowViewModel : ViewModelBase
         var rows = await _mediator!.Send(new ParseCsvRequest(filePath, bankConfig));
         var matcher = new MerchantMatcher(_configService.CurrentConfig.Merchants);
 
-        Rows.Clear();
-        foreach (var row in rows)
+        _source.Edit(updater =>
         {
-            var rowVm = new CategorizationRowViewModel(row.Date, row.Description, row.Amount, Accounts);
-            ApplyMatch(rowVm, matcher.Match(rowVm));
-            Rows.Add(rowVm);
-        }
+            updater.Clear();
+            for (var i = 0; i < rows.Count; i++)
+            {
+                var rowVm = new CategorizationRowViewModel(rows[i].Date, rows[i].Description, rows[i].Amount, i);
+                ApplyMatch(rowVm, matcher.Match(rowVm));
+                updater.AddOrUpdate(rowVm);
+            }
+        });
     }
 
-    private void ApplyMatch(CategorizationRowViewModel row, (string Name, string Account)? match)
+    private void ApplyMatch(CategorizationRowViewModel row, MatchResult? match)
     {
-        row.Merchant = match?.Name ?? "";
-        row.SelectedAccount = match is not null
-            ? Accounts.FirstOrDefault(a => a.FullName == match.Value.Account)
-            : null;
+        if (match is null) return;
+        
+        row.SetFromConfig(
+            match.Name,
+            Accounts.FirstOrDefault(a => a.FullName == match.Account)
+        );
     }
 }
-

@@ -29,18 +29,30 @@ public class CategorizationWindowViewModelTests
         new(new DateOnly(2024, 1, 20), "Salary", 3000.00m),
     ];
 
+    private static readonly List<MerchantConfig> SampleMerchants =
+    [
+        new() { Match = "contains(\"grocery\")", Name = "Grocery Store", Account = "Expenses:Groceries" },
+    ];
+
+    private static readonly List<Account> SampleAccounts =
+    [
+        new Account() { FullName = "Expenses:Groceries" }
+    ];
+
     private static (CategorizationWindowViewModel Vm, IMediator Mediator) Build(
         BankConfig? match = null,
-        List<CsvRow>? rows = null)
+        List<CsvRow>? rows = null,
+        List<MerchantConfig>? merchants = null
+        )
     {
         var mediator = Substitute.For<IMediator>();
         mediator.Send(Arg.Any<FetchAccountsRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new List<Account>()));
+            .Returns(Task.FromResult(SampleAccounts));
         mediator.Send(Arg.Any<ParseCsvRequest>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(rows ?? SampleRows));
 
         var configSvc = Substitute.For<IConfigService>();
-        configSvc.CurrentConfig.Returns(new AppConfig { Banks = match != null ? [match] : [] });
+        configSvc.CurrentConfig.Returns(new AppConfig { Banks = match != null ? [match] : [], Merchants = merchants ?? SampleMerchants });
 
         return (new CategorizationWindowViewModel(mediator, configSvc), mediator);
     }
@@ -80,24 +92,6 @@ public class CategorizationWindowViewModelTests
     }
 
     [Fact]
-    public async Task RowsShareTheAccountsCollection()
-    {
-        var (vm, _) = Build(SampleConfig);
-        await vm.LoadCsv(Fixtures.File("sample.csv"));
-
-        vm.Rows.Should().AllSatisfy(row => row.Accounts.Should().BeSameAs(vm.Accounts));
-    }
-
-    [Fact]
-    public async Task MerchantDefaultsToEmpty()
-    {
-        var (vm, _) = Build(SampleConfig);
-        await vm.LoadCsv(Fixtures.File("sample.csv"));
-
-        vm.Rows.Should().AllSatisfy(row => row.Merchant.Should().BeEmpty());
-    }
-
-    [Fact]
     public async Task ItShowsErrorAndDoesNotLoadWhenNoBankConfigMatches()
     {
         var (vm, _) = Build(match: null);
@@ -112,5 +106,40 @@ public class CategorizationWindowViewModelTests
 
         vm.Rows.Should().BeEmpty();
         errorMessage.Should().Contain("sample.csv");
+    }
+
+    [Fact]
+    public async Task FilteringMaintainsOriginalOrder()
+    {
+        var (vm, _) = Build(match: SampleConfig, merchants: SampleMerchants);
+        await vm.LoadCsv(Fixtures.File("sample.csv"));
+
+        // Grocery Store (index 0) matched an account → valid; others are invalid
+        vm.Rows[0].Description.Should().Be("Grocery Store");
+        vm.Rows[1].Description.Should().Be("Gas Station");
+        vm.Rows[2].Description.Should().Be("Salary");
+
+        vm.ShowOnlyErrors = true;
+        vm.Rows.Should().HaveCount(2);
+
+        vm.ShowOnlyErrors = false;
+        vm.Rows.Should().HaveCount(3);
+        vm.Rows[0].Description.Should().Be("Grocery Store");
+        vm.Rows[1].Description.Should().Be("Gas Station");
+        vm.Rows[2].Description.Should().Be("Salary");
+    }
+
+    [Fact]
+    public async Task Filtering()
+    {
+        var (vm,_) = Build(match: SampleConfig, merchants: SampleMerchants);
+        await vm.LoadCsv(Fixtures.File("sample.csv"));
+        vm.Rows.Should().HaveCount(3);
+
+        vm.ShowOnlyErrors = true;
+        vm.Rows.Should().HaveCount(2);
+
+        vm.ShowOnlyErrors = false;
+        vm.Rows.Should().HaveCount(3);
     }
 }

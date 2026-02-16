@@ -5,6 +5,7 @@ using GnuCashUtils.Core;
 
 namespace GnuCashUtils.Categorization;
 
+public record MatchResult(string Name, string Account);
 /// <summary>
 /// Compiles a list of MerchantConfig rules and matches rows against them in order,
 /// returning the name of the first matching merchant.
@@ -23,11 +24,11 @@ public class MerchantMatcher
     }
 
     /// <summary>Returns the name and account of the first matching merchant rule, or null if none match.</summary>
-    public (string Name, string Account)? Match(CategorizationRowViewModel row)
+    public MatchResult? Match(CategorizationRowViewModel row)
     {
         foreach (var (name, account, predicate) in _rules)
         {
-            if (predicate(row)) return (name, account);
+            if (predicate(row)) return new MatchResult(name, account);
         }
         return null;
     }

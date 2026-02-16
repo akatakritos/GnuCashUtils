@@ -1,7 +1,4 @@
-using System;
-using System.Collections.ObjectModel;
 using AwesomeAssertions;
-using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
 
@@ -10,7 +7,7 @@ namespace GnuCashUtils.Tests.Categorization;
 public class MerchantRuleParserTests
 {
     private static CategorizationRowViewModel Row(string desc, decimal amount = 0m) =>
-        new(DateOnly.MinValue, desc, amount, new ObservableCollection<Account>());
+        new(DateOnly.MinValue, desc, amount);
 
     private static Func<CategorizationRowViewModel, bool> Compile(string rule) =>
         new MerchantRuleParser().Parse(rule).Compile();
@@ -277,8 +274,8 @@ public class MerchantRuleParserTests
             new MerchantConfig { Name = "Amazon", Match = @"startswith(""AMAZON"")" },
         ]);
 
-        matcher.Match(Row("AMAZON WEB SERVICES #1"))!.Value.Name.Should().Be("AWS");
-        matcher.Match(Row("AMAZON PRIME"))!.Value.Name.Should().Be("Amazon");
+        matcher.Match(Row("AMAZON WEB SERVICES #1"))!.Name.Should().Be("AWS");
+        matcher.Match(Row("AMAZON PRIME"))!.Name.Should().Be("Amazon");
     }
 
     [Fact]
@@ -299,7 +296,7 @@ public class MerchantRuleParserTests
             new MerchantConfig { Name = "AWS", Match = @"contains(""AMAZON"")" },
         ]);
 
-        matcher.Match(Row("AMAZON"))!.Value.Name.Should().Be("AWS");
+        matcher.Match(Row("AMAZON"))!.Name.Should().Be("AWS");
     }
 
     [Fact]

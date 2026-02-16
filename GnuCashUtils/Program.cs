@@ -120,7 +120,7 @@ sealed class Program
         var emptyAccounts = new ObservableCollection<Account>();
 
         var unmatched = rows
-            .Where(row => matcher.Match(new CategorizationRowViewModel(row.Date, row.Description, row.Amount, emptyAccounts)) is null)
+            .Where(row => matcher.Match(new CategorizationRowViewModel(row.Date, row.Description, row.Amount)) is null)
             .ToList();
 
         using var csvWriter = new CsvWriter(Console.Out, CultureInfo.InvariantCulture);
