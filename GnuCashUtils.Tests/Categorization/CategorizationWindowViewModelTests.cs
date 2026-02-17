@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using DynamicData;
 using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
@@ -46,15 +47,20 @@ public class CategorizationWindowViewModelTests
         )
     {
         var mediator = Substitute.For<IMediator>();
-        mediator.Send(Arg.Any<FetchAccountsRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(SampleAccounts));
         mediator.Send(Arg.Any<ParseCsvRequest>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(rows ?? SampleRows));
 
         var configSvc = Substitute.For<IConfigService>();
         configSvc.CurrentConfig.Returns(new AppConfig { Banks = match != null ? [match] : [], Merchants = merchants ?? SampleMerchants });
 
-        return (new CategorizationWindowViewModel(mediator, configSvc), mediator);
+        var accountsCache = new SourceCache<Account, string>(x => x.FullName);
+        accountsCache.AddOrUpdate(SampleAccounts);
+        var store = Substitute.For<IAccountStore>();
+        store.Accounts.Returns(accountsCache);
+
+        var vm = new CategorizationWindowViewModel(mediator, configSvc, store);
+        vm.Activator.Activate();
+        return (vm, mediator);
     }
 
     [Fact]

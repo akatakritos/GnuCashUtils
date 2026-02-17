@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="personal-copy.sqlite.gnucash" uuid="5c70b7b8-c75f-403f-89d2-2d9235ded2bd">
+    <data-source source="LOCAL" name="test.gnucash" uuid="5c70b7b8-c75f-403f-89d2-2d9235ded2bd">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$USER_HOME$/personal-copy.sqlite.gnucash</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$USER_HOME$/Documents/gnucash/test.gnucash</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

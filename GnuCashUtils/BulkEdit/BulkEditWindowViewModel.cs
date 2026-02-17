@@ -139,13 +139,6 @@ public partial class SelectableTransactionViewModel : ViewModelBase
     [Reactive] private string? _accountGuid;
 }
 
-public class Account
-{
-    public string Guid { get; set; } = "";
-    public string Name { get; set; } = "";
-    public string ParentGuid { get; set; } = "";
-    public string FullName { get; set; } = "";
-}
 
 
 public record FetchTransactions(string AccountGuid) : IRequest<List<SelectableTransactionViewModel>>;

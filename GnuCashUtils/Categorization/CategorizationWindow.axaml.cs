@@ -11,7 +11,7 @@ using ReactiveUI;
 
 namespace GnuCashUtils.Categorization;
 
-public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowViewModel>
+public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowViewModel> 
 {
     public CategorizationWindow()
     {

@@ -23,16 +23,21 @@ public partial class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BulkEditAccountCommand { get; }
     public ReactiveCommand<Unit, Unit> CategorizationCommand { get; }
     public ReactiveCommand<Unit, Unit> BackupCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenFileCommand { get; }
     [Reactive] public partial string GnuCashFile { get; set; }
     [Reactive] public partial string CopyMessage { get; set; }
     
-    public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null, IConfigService? configService = null)
+    public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null, IConfigService? configService = null, IAccountStore? store = null)
     {
         dbConnectionFactory ??= Locator.Current.GetService<IDbConnectionFactory>()!;
-        configService ??= Locator.Current.GetService<IConfigService>();
+        configService ??= Locator.Current.GetService<IConfigService>()!;
+        store ??= Locator.Current.GetService<IAccountStore>()!;
         GnuCashFile = configService!.CurrentConfig.Database;
         dbConnectionFactory.SetDatabase(GnuCashFile);
         _copyMessage = "";
+
+        OpenFileCommand = ReactiveCommand.CreateFromTask(() => store.Load());
+        OpenFileCommand.Execute();
 
 
         if (Design.IsDesignMode)

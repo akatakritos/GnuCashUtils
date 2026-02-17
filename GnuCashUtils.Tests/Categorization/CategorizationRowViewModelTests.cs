@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
+using GnuCashUtils.Core;
 
 namespace GnuCashUtils.Tests.Categorization;
 

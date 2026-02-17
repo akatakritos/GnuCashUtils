@@ -18,28 +18,44 @@ using DynamicData.Aggregation;
 
 namespace GnuCashUtils.Categorization;
 
-public partial class CategorizationWindowViewModel : ViewModelBase
+public partial class CategorizationWindowViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly IMediator? _mediator;
     private readonly IConfigService _configService;
 
     [Reactive] public partial string CsvFilePath { get; set; }
     [Reactive] public partial bool ShowOnlyErrors { get; set; }
-    public ObservableCollection<Account> Accounts { get; } = new();
     public Interaction<string, Unit> ShowError { get; } = new();
 
     private readonly SourceCache<CategorizationRowViewModel, int> _source = new(row => row.CsvIndex);
     private readonly ReadOnlyObservableCollection<CategorizationRowViewModel> _filteredRows;
     public ReadOnlyObservableCollection<CategorizationRowViewModel> Rows => _filteredRows;
+    
+    private readonly ReadOnlyObservableCollection<Account> _accounts;
+    public ReadOnlyObservableCollection<Account> Accounts => _accounts;
 
     [ObservableAsProperty] public partial int InvalidCount { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
-    public CategorizationWindowViewModel(IMediator? mediator = null, IConfigService? configService = null)
+    public CategorizationWindowViewModel(IMediator? mediator = null, IConfigService? configService = null,
+        IAccountStore? store = null)
     {
         CsvFilePath = "";
         _configService = configService ?? Locator.Current.GetService<IConfigService>() ?? new ConfigService();
         _mediator = mediator ?? Locator.Current.GetService<IMediator>()!;
+        store ??= Locator.Current.GetService<IAccountStore>()!;
+
+        var accountsObs =
+            store.Accounts
+                .Connect()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Bind(out _accounts);
+
+        this.WhenActivated(d =>
+        {
+            d.Add(accountsObs.Subscribe());
+        });
+
 
         var filter = this.WhenAnyValue(x => x.ShowOnlyErrors)
             .Select(showOnlyErrors => showOnlyErrors ? new Func<CategorizationRowViewModel, bool>(row => !row.IsValid) : _ => true);
@@ -64,12 +80,6 @@ public partial class CategorizationWindowViewModel : ViewModelBase
             () => Task.FromResult(Unit.Default),
             canExecute: errorCount.Select(n => n == 0));
 
-        Observable.FromAsync(() => _mediator.Send(new FetchAccountsRequest()))
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(accounts =>
-            {
-                Accounts.AddRange(accounts);
-            });
 
         _configService.Config
             .Skip(1)
@@ -122,4 +132,6 @@ public partial class CategorizationWindowViewModel : ViewModelBase
             Accounts.FirstOrDefault(a => a.FullName == match.Account)
         );
     }
+
+    public ViewModelActivator Activator { get; } = new();
 }
