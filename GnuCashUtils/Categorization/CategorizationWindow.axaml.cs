@@ -1,18 +1,27 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
+using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
+using Avalonia.VisualTree;
+using GnuCashUtils.Core;
 using ReactiveUI;
 
 namespace GnuCashUtils.Categorization;
 
-public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowViewModel> 
+public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowViewModel>
 {
+    private CategorizationRowViewModel? _contextMenuTargetRow;
+
     public CategorizationWindow()
     {
         InitializeComponent();
@@ -23,7 +32,51 @@ public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowV
                 await ShowErrorDialog(ctx.Input);
                 ctx.SetOutput(Unit.Default);
             }));
+
+            d(ViewModel.WhenAnyValue(x => x.AccountTree)
+                .WhereNotNull()
+                .Subscribe(BuildContextMenu));
         });
+
+        CsvDataGrid.AddHandler(PointerPressedEvent, OnDataGridPointerPressed, RoutingStrategies.Tunnel);
+    }
+
+    private void OnDataGridPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(CsvDataGrid).Properties.IsRightButtonPressed) return;
+
+        _contextMenuTargetRow = (e.Source as Visual)
+            ?.GetSelfAndVisualAncestors()
+            .OfType<DataGridRow>()
+            .FirstOrDefault()
+            ?.DataContext as CategorizationRowViewModel;
+    }
+
+    private void BuildContextMenu(IReadOnlyCollection<Account> accountTree)
+    {
+        var contextMenu = new ContextMenu();
+        foreach (var root in accountTree.OrderBy(a => a.Name))
+            contextMenu.Items.Add(BuildMenuItem(root));
+        CsvDataGrid.ContextMenu = contextMenu;
+    }
+
+    private MenuItem BuildMenuItem(Account account)
+    {
+        var item = new MenuItem { Header = account.Name };
+        if (account.Children.Count > 0)
+        {
+            foreach (var child in account.Children.OrderBy(c => c.Name))
+                item.Items.Add(BuildMenuItem(child));
+        }
+        else
+        {
+            item.Click += (_, _) =>
+            {
+                if (_contextMenuTargetRow != null)
+                    _contextMenuTargetRow.SelectedAccount = account;
+            };
+        }
+        return item;
     }
 
     private async void OpenCsvButton_Click(object? sender, RoutedEventArgs e)
