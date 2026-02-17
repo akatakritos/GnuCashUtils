@@ -29,7 +29,7 @@ public class FetchAccounts : IRequestHandler<FetchAccountsRequest, List<Account>
                        from accounts a
                                 join cte on a.parent_guid = cte.guid)
 select *
-from cte order by name");
+from cte order by full_name");
         return Task.FromResult(result.AsList());
     }
 }
