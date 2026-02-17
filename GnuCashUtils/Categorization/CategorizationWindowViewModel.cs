@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CsvHelper;
+using CsvHelper.Configuration;
 using DynamicData;
 using GnuCashUtils.Core;
 using MediatR;
@@ -22,8 +25,10 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
 {
     private readonly IMediator? _mediator;
     private readonly IConfigService _configService;
+    private bool _amountNegated;
 
     [Reactive] public partial string CsvFilePath { get; set; }
+    [Reactive] public partial string StatusMessage { get; set; }
     [Reactive] public partial bool ShowOnlyErrors { get; set; }
     public Interaction<string, Unit> ShowError { get; } = new();
 
@@ -41,6 +46,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         IAccountStore? store = null)
     {
         CsvFilePath = "";
+        StatusMessage = "";
         _configService = configService ?? Locator.Current.GetService<IConfigService>() ?? new ConfigService();
         _mediator = mediator ?? Locator.Current.GetService<IMediator>()!;
         store ??= Locator.Current.GetService<IAccountStore>()!;
@@ -84,7 +90,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         errorCount.ToProperty(this, x => x.InvalidCount, out _invalidCountHelper);
 
         SaveCommand = ReactiveCommand.CreateFromTask(
-            () => Task.FromResult(Unit.Default),
+            Save,
             canExecute: errorCount.Select(n => n == 0));
 
 
@@ -102,6 +108,48 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
             });
     }
 
+    private Task Save()
+    {
+        var dir = Path.GetDirectoryName(CsvFilePath) ?? "";
+        var nameWithoutExt = Path.GetFileNameWithoutExtension(CsvFilePath);
+        var ext = Path.GetExtension(CsvFilePath);
+        var outputPath = Path.Combine(dir, $"{nameWithoutExt}-categorized{ext}");
+
+        var amountHeader = _amountNegated ? "amount_negated" : "amount";
+
+        var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            ShouldQuote = _ => true,
+        };
+
+        using var writer = new StreamWriter(outputPath);
+        using var csv = new CsvWriter(writer, csvConfig);
+
+        csv.WriteField("date");
+        csv.WriteField("description");
+        csv.WriteField(amountHeader);
+        csv.WriteField("merchant");
+        csv.WriteField("transfer_account");
+        csv.NextRecord();
+
+        foreach (var row in _source.Items.OrderBy(r => r.CsvIndex))
+        {
+            var description = string.IsNullOrEmpty(row.Merchant)
+                ? row.Description
+                : $"[{row.Merchant}] {row.Description}";
+
+            csv.WriteField(row.Date.ToString("yyyy-MM-dd"));
+            csv.WriteField(description);
+            csv.WriteField(row.Amount);
+            csv.WriteField(row.Merchant);
+            csv.WriteField(row.SelectedAccount?.FullName ?? "");
+            csv.NextRecord();
+        }
+
+        StatusMessage = $"Saved to {outputPath}";
+        return Task.CompletedTask;
+    }
+
     public async Task LoadCsv(string filePath)
     {
         CsvFilePath = filePath;
@@ -114,6 +162,8 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
             await ShowError.Handle($"No bank configuration matched '{fileName}'. Check config.yml.");
             return;
         }
+
+        _amountNegated = bankConfig.Headers.Split(',').Any(h => h.Trim() == "{-amount}");
 
         var rows = await _mediator!.Send(new ParseCsvRequest(filePath, bankConfig));
         var matcher = new MerchantMatcher(_configService.CurrentConfig.Merchants);
