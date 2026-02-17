@@ -45,6 +45,7 @@ public class ParseCsvHandler : IRequestHandler<ParseCsvRequest, List<CsvRow>>
 
                 var date = DateOnly.ParseExact(dateStr, mapping.DateFormat, CultureInfo.InvariantCulture);
                 var amount = decimal.Parse(amtStr, NumberStyles.Any, CultureInfo.InvariantCulture);
+                if (mapping.NegateAmount) amount = -amount;
 
                 rows.Add(new CsvRow(date, descStr, amount));
             }
@@ -52,13 +53,14 @@ public class ParseCsvHandler : IRequestHandler<ParseCsvRequest, List<CsvRow>>
             return rows;
         }, cancellationToken);
 
-    private record ColumnMapping(int DateColumnIndex, string DateFormat, int DescriptionColumnIndex, int AmountColumnIndex);
+    private record ColumnMapping(int DateColumnIndex, string DateFormat, int DescriptionColumnIndex, int AmountColumnIndex, bool NegateAmount);
 
     private static ColumnMapping ParseHeadersDsl(string headersDsl)
     {
         var parts = headersDsl.Split(',');
         int dateIndex = -1, descIndex = -1, amtIndex = -1;
         string dateFormat = "MM/dd/yyyy";
+        bool negateAmount = false;
 
         for (int i = 0; i < parts.Length; i++)
         {
@@ -80,8 +82,13 @@ public class ParseCsvHandler : IRequestHandler<ParseCsvRequest, List<CsvRow>>
             {
                 amtIndex = i;
             }
+            else if (token == "{-amount}")
+            {
+                amtIndex = i;
+                negateAmount = true;
+            }
         }
 
-        return new ColumnMapping(dateIndex, dateFormat, descIndex, amtIndex);
+        return new ColumnMapping(dateIndex, dateFormat, descIndex, amtIndex, negateAmount);
     }
 }

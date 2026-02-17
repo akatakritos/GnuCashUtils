@@ -13,7 +13,9 @@ banks:
   - name: Bank of America
     match: "stmt-\\d+\\.csv$"
     skip: 7
-    headers: "{date:MM/dd/yyyy},{description},{amount},_"
+    # an amount can be marked with negative sign. These values should be negated when read from the CSV. The idea is to represent positive numbers as debits to expense accounts.
+    # BoA, since its an asset account, records credits as negative values, and a credit on the checking account is a debit to the expense account so we need to negate it
+    headers: "{date:MM/dd/yyyy},{description},{-amount},_"
       
       
 # merchants defines matchers to identify a merchant from a transaction description
