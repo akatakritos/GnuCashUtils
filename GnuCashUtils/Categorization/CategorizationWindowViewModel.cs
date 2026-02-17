@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DynamicData;
-using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Core;
 using MediatR;
 using ReactiveUI;
@@ -31,11 +31,11 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
     private readonly ReadOnlyObservableCollection<CategorizationRowViewModel> _filteredRows;
     public ReadOnlyObservableCollection<CategorizationRowViewModel> Rows => _filteredRows;
     
-    private readonly ReadOnlyObservableCollection<Account> _accounts;
-    public ReadOnlyObservableCollection<Account> Accounts => _accounts;
-
     [ObservableAsProperty] public partial int InvalidCount { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+    
+    [ObservableAsProperty] public partial IReadOnlyCollection<Account> Accounts { get; }
+    [ObservableAsProperty] public partial IReadOnlyCollection<Account> AccountTree { get; }
 
     public CategorizationWindowViewModel(IMediator? mediator = null, IConfigService? configService = null,
         IAccountStore? store = null)
@@ -45,15 +45,22 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         _mediator = mediator ?? Locator.Current.GetService<IMediator>()!;
         store ??= Locator.Current.GetService<IAccountStore>()!;
 
-        var accountsObs =
-            store.Accounts
-                .Connect()
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Bind(out _accounts);
+        store.Accounts
+            .Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .ToSortedCollection(x => x.FullName)
+            .ToProperty(this, x => x.Accounts, out _accountsHelper);
+        
+        store.AccountTree
+            .Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .ToSortedCollection(x => x.FullName)
+            .ToProperty(this, x => x.AccountTree, out _accountTreeHelper);
 
         this.WhenActivated(d =>
         {
-            d.Add(accountsObs.Subscribe());
+            _accountsHelper.DisposeWith(d);
+            _accountsHelper.DisposeWith(d);
         });
 
 

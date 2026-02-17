@@ -57,6 +57,7 @@ public class CategorizationWindowViewModelTests
         accountsCache.AddOrUpdate(SampleAccounts);
         var store = Substitute.For<IAccountStore>();
         store.Accounts.Returns(accountsCache);
+        store.AccountTree.Returns(accountsCache);
 
         var vm = new CategorizationWindowViewModel(mediator, configSvc, store);
         vm.Activator.Activate();
