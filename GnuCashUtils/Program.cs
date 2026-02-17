@@ -91,7 +91,7 @@ sealed class Program
         var accounts = mediator.Send(new FetchAccountsRequest()).GetAwaiter().GetResult();
 
         foreach (var account in accounts)
-            Console.WriteLine(account.Name);
+            Console.WriteLine(account.FullName);
     }
 
     private static void RunAnalyze(string csvPath)

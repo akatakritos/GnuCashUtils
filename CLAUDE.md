@@ -47,6 +47,14 @@ Non-trivial IO (file or database) should be done in a MediatR command or query
 
 Put the request/command and its handler in the same file
 
+## DynamicData
+
+DynamicData is a transitive dependency (via ReactiveUI). It comes with two `Count()` operators:
+- `System.Reactive.Linq` / standard Rx.NET `Count()` — counts total emissions, not useful for change sets
+- `DynamicData.Aggregation.Count()` — counts items currently passing through a change set pipeline
+
+Always `using DynamicData.Aggregation;` when using `Count()` on a DynamicData pipeline, otherwise you get the Rx.NET version which doesn't do what you want.
+
 ## Testing
 
 We use AwesomeAssertions (previously called FluentAssertions)

@@ -14,6 +14,7 @@ using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Splat;
 using Unit = System.Reactive.Unit;
+using DynamicData.Aggregation;
 
 namespace GnuCashUtils.Categorization;
 
@@ -31,6 +32,9 @@ public partial class CategorizationWindowViewModel : ViewModelBase
     private readonly ReadOnlyObservableCollection<CategorizationRowViewModel> _filteredRows;
     public ReadOnlyObservableCollection<CategorizationRowViewModel> Rows => _filteredRows;
 
+    [ObservableAsProperty] public partial int InvalidCount { get; }
+    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+
     public CategorizationWindowViewModel(IMediator? mediator = null, IConfigService? configService = null)
     {
         CsvFilePath = "";
@@ -46,6 +50,19 @@ public partial class CategorizationWindowViewModel : ViewModelBase
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _filteredRows)
             .Subscribe();
+
+        var errorCount =_source.Connect()
+            .AutoRefresh(x => x.IsValid)
+            .Filter(row => !row.IsValid)
+            .Count()
+            .Publish()
+            .RefCount();
+            
+        errorCount.ToProperty(this, x => x.InvalidCount, out _invalidCountHelper);
+
+        SaveCommand = ReactiveCommand.CreateFromTask(
+            () => Task.FromResult(Unit.Default),
+            canExecute: errorCount.Select(n => n == 0));
 
         Observable.FromAsync(() => _mediator.Send(new FetchAccountsRequest()))
             .ObserveOn(RxApp.MainThreadScheduler)

@@ -22,8 +22,6 @@ public partial class CategorizationRowViewModel : ViewModelBase
     private readonly ObservableAsPropertyHelper<string> _statusIcon;
     public string StatusIcon => _statusIcon.Value;
     
-    private bool _applyingConfig;
-
     public int CsvIndex { get; }
 
     public CategorizationRowViewModel(DateOnly date, string description, decimal amount, int csvIndex = 0)

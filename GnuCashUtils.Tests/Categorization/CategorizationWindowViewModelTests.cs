@@ -156,5 +156,8 @@ public class CategorizationWindowViewModelTests
         groceryRow.IsValid.Should().BeTrue();
 
         vm.Rows.Where(r => r.Description != "Grocery Store").Should().OnlyContain(r => !r.IsValid);
+        
+        vm.Rows.Count(x => !x.IsValid).Should().Be(2);
+        vm.InvalidCount.Should().Be(2);
     }
 }
