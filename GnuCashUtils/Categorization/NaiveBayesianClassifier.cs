@@ -8,7 +8,7 @@ namespace GnuCashUtils.Categorization;
 
 public class NaiveBayesianClassifier
 {
-    class LabelData
+    private class LabelData
     {
         public Dictionary<string, int> WordCounts { get; set; } = new();
         public int TotalWords { get; set; }
@@ -20,6 +20,7 @@ public class NaiveBayesianClassifier
             WordCounts[token]++;
         }
 
+        public override string ToString() => $"LabelData(DocCount={DocCount}, WordCounts={WordCounts})";
     }
     
     private readonly ITokenizer _tokenizer;
@@ -34,6 +35,9 @@ public class NaiveBayesianClassifier
 
     public void Train(string description, decimal amount, string account)
     {
+        ArgumentNullException.ThrowIfNull(description);
+        ArgumentNullException.ThrowIfNull(account);
+        
         if (!_labels.ContainsKey(account))
         {
             _labels.Add(account, new());
