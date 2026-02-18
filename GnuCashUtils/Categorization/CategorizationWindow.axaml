@@ -18,9 +18,10 @@
         </StackPanel>
         
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8">
-            <TextBlock Text="{Binding InvalidCount, StringFormat='{}{0} transactions to categorize'}" VerticalAlignment="Center" />
-            <Button Content="Save" Command="{Binding SaveCommand}" />
-            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" />
+            <ProgressBar Minimum="0" Maximum="1" IsVisible="{Binding IsBuildingClassifier}" Value="{Binding BuildingProgress}" />
+            <TextBlock IsVisible="{Binding !IsBuildingClassifier}" Text="{Binding InvalidCount, StringFormat='{}{0} transactions to categorize'}" VerticalAlignment="Center" />
+            <Button IsVisible="{Binding !IsBuildingClassifier}" Content="Save" Command="{Binding SaveCommand}" />
+            <TextBlock IsVisible="{Binding !IsBuildingClassifier}" Text="{Binding StatusMessage}" VerticalAlignment="Center" />
         </StackPanel>
 
         <DataGrid x:Name="CsvDataGrid"

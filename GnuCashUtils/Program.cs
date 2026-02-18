@@ -72,6 +72,7 @@ sealed class Program
         services.AddTransient<IViewFor<BulkEditWindowViewModel>, BulkEditWindow>();
         services.AddTransient<IViewFor<CategorizationWindowViewModel>, CategorizationWindow>();
         services.AddSingleton<IAccountStore, AccountStore>();
+        services.AddTransient<IClassifierBuilder, ClassifierBuilder>();
         services.UseMicrosoftDependencyResolver();
     }
 

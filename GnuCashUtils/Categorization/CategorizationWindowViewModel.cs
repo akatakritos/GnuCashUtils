@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -23,8 +24,10 @@ namespace GnuCashUtils.Categorization;
 
 public partial class CategorizationWindowViewModel : ViewModelBase, IActivatableViewModel
 {
-    private readonly IMediator? _mediator;
+    private readonly IMediator _mediator;
     private readonly IConfigService _configService;
+    private readonly IClassifierBuilder _classifierBuilder;
+    
     private bool _amountNegated;
 
     [Reactive] public partial string CsvFilePath { get; set; }
@@ -39,17 +42,24 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
     [ObservableAsProperty] public partial int InvalidCount { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     
-    [ObservableAsProperty] public partial IReadOnlyCollection<Account> Accounts { get; }
-    [ObservableAsProperty] public partial IReadOnlyCollection<Account> AccountTree { get; }
+    [ObservableAsProperty] public partial IReadOnlyCollection<Account> Accounts { get; }  
+    [ObservableAsProperty] public partial IReadOnlyCollection<Account> AccountTree { get; } 
+    [ObservableAsProperty] public partial bool IsBuildingClassifier { get; }
+    [ObservableAsProperty] public partial double BuildingProgress { get; }
+    
 
     public CategorizationWindowViewModel(IMediator? mediator = null, IConfigService? configService = null,
-        IAccountStore? store = null)
+        IAccountStore? store = null, IClassifierBuilder? classifierBuilder = null)
     {
+        _accounts = [];
+        _accountTree = [];
+        
         CsvFilePath = "";
         StatusMessage = "";
-        _configService = configService ?? Locator.Current.GetService<IConfigService>() ?? new ConfigService();
-        _mediator = mediator ?? Locator.Current.GetService<IMediator>()!;
-        store ??= Locator.Current.GetService<IAccountStore>()!;
+        _configService = configService ?? Locator.Current.GetRequiredService<IConfigService>();
+        _mediator = mediator ?? Locator.Current.GetRequiredService<IMediator>()!;
+        _classifierBuilder = classifierBuilder ?? Locator.Current.GetRequiredService<ClassifierBuilder>()!;
+        store ??= Locator.Current.GetRequiredService<IAccountStore>()!;
 
         store.Accounts
             .Connect()
@@ -106,6 +116,14 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
                         ApplyMatch(row, matcher.Match(row));
                 }
             });
+
+        _classifierBuilder.Status
+            .Select(s => s == ClassifierBuilder.BuilderStatus.Running)
+            .ToProperty(this, x => x.IsBuildingClassifier, out _isBuildingClassifierHelper);
+        
+        _classifierBuilder.Progress
+            .Sample(Observable.Interval(TimeSpan.FromMilliseconds(100)))
+            .ToProperty(this, x => x.BuildingProgress, out _buildingProgressHelper);
     }
 
     private Task Save()
@@ -150,23 +168,28 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         return Task.CompletedTask;
     }
 
-    public async Task LoadCsv(string filePath)
+    public async Task LoadCsv(string filePath, CancellationToken token = default)
     {
-        CsvFilePath = filePath;
-
         var fileName = Path.GetFileName(filePath);
         var bankConfig = _configService.CurrentConfig.Banks.FirstOrDefault(bank => Regex.IsMatch(fileName, bank.Match));
-
+        
         if (bankConfig is null)
         {
             await ShowError.Handle($"No bank configuration matched '{fileName}'. Check config.yml.");
             return;
         }
+        
+        var account = Accounts.FirstOrDefault(a => a.FullName == bankConfig.Account);
+        if (account is null) throw new InvalidOperationException($"Account '{bankConfig.Account}' not found.");
+
+        var classifier = await _classifierBuilder.Build(account.Guid, token);
+        
+        CsvFilePath = filePath;
+
 
         _amountNegated = bankConfig.Headers.Split(',').Any(h => h.Trim() == "{-amount}");
 
-        var rows = await _mediator!.Send(new ParseCsvRequest(filePath, bankConfig));
-        var matcher = new MerchantMatcher(_configService.CurrentConfig.Merchants);
+        var rows = await _mediator.Send(new ParseCsvRequest(filePath, bankConfig), token);
 
         _source.Edit(updater =>
         {
@@ -174,7 +197,8 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
             for (var i = 0; i < rows.Count; i++)
             {
                 var rowVm = new CategorizationRowViewModel(rows[i].Date, rows[i].Description, rows[i].Amount, i);
-                ApplyMatch(rowVm, matcher.Match(rowVm));
+                var predictedAccount = classifier.Predict(rowVm.Description, rowVm.Amount);
+                ApplyMatch(rowVm, new MatchResult("<MERCHANT>", predictedAccount));
                 updater.AddOrUpdate(rowVm);
             }
         });

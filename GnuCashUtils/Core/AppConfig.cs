@@ -15,6 +15,7 @@ public class BankConfig
     public string Match { get; set; } = "";
     public int Skip { get; set; }
     public string Headers { get; set; } = "";
+    public string Account { get; set; } = "";
 }
 
 public class MerchantConfig
