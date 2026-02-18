@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,6 @@ using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Controls;
 using CsvHelper;
 using CsvHelper.Configuration;
 using DynamicData;
@@ -29,7 +29,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
     private readonly IConfigService _configService;
     private readonly IClassifierBuilder _classifierBuilder;
 
-    private bool _amountNegated;
+    private BankConfig? _currentBankConfig;
 
     [Reactive] public partial string CsvFilePath { get; set; }
     [Reactive] public partial string StatusMessage { get; set; }
@@ -117,12 +117,14 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
 
     private Task Save()
     {
+        Debug.Assert(_currentBankConfig is not null);
+        
         var dir = Path.GetDirectoryName(CsvFilePath) ?? "";
         var nameWithoutExt = Path.GetFileNameWithoutExtension(CsvFilePath);
         var ext = Path.GetExtension(CsvFilePath);
         var outputPath = Path.Combine(dir, $"{nameWithoutExt}-categorized{ext}");
 
-        var amountHeader = _amountNegated ? "amount_negated" : "amount";
+        var amountHeader = _currentBankConfig.Type == AccountType.Credit ? "amount_negated" : "amount";
 
         var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -170,7 +172,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         CsvFilePath = filePath;
 
 
-        _amountNegated = bankConfig.Headers.Split(',').Any(h => h.Trim() == "{-amount}");
+        _currentBankConfig = bankConfig;
 
         var rows = await _mediator.Send(new ParseCsvRequest(filePath, bankConfig), token);
 

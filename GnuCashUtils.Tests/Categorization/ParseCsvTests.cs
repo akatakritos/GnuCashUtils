@@ -106,25 +106,4 @@ public class ParseCsvTests
 
         await act.Should().ThrowAsync<FormatException>();
     }
-
-    [Fact]
-    public async Task ItNegatesAmountWhenUsingNegatedToken()
-    {
-        // negated.csv has BoA-style values: expenses are negative, deposits are positive
-        // {-amount} should flip the sign so expenses become positive (debit to expense account)
-        var config = new BankConfig
-        {
-            Name = "Negated",
-            Match = @"negated\.csv$",
-            Skip = 1,
-            Headers = "{date:yyyy-MM-dd},{description},{-amount},_"
-        };
-
-        var rows = await Parse("negated.csv", config);
-
-        rows.Should().HaveCount(3);
-        rows[0].Amount.Should().Be(45.00m);   // -45.00 negated → expense debit
-        rows[1].Amount.Should().Be(60.00m);   // -60.00 negated → expense debit
-        rows[2].Amount.Should().Be(-3000.00m); // 3000.00 negated → deposit (credit)
-    }
 }

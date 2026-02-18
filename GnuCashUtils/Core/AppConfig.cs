@@ -15,4 +15,11 @@ public class BankConfig
     public int Skip { get; set; }
     public string Headers { get; set; } = "";
     public string Account { get; set; } = "";
+    public AccountType Type { get; set; }
+}
+
+public enum AccountType
+{
+    Debit,
+    Credit
 }

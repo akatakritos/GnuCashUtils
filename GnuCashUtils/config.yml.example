@@ -10,11 +10,12 @@ banks:
     # this means the csv is in Date,(ignored),Description,Amount,(ignored) columns. The date can be parsed using the provided C# format string
     headers: "{date:MM/dd/yyyy},_,{description},{amount},_"
     account: "Liabilities:Discover"
+    # credit or debit normal
+    type: "credit"
 
   - name: Bank of America
     match: "stmt-\\d+\\.csv$"
     skip: 7
-    # an amount can be marked with negative sign. These values should be negated when read from the CSV. The idea is to represent positive numbers as debits to expense accounts.
-    # BoA, since its an asset account, records credits as negative values, and a credit on the checking account is a debit to the expense account so we need to negate it
-    headers: "{date:MM/dd/yyyy},{description},{-amount},_"
+    headers: "{date:MM/dd/yyyy},{description},{amount},_"
     account: "Assets:Bank of America"
+    type: "debit"
