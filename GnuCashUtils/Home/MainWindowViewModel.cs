@@ -61,9 +61,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         CategorizationCommand = ReactiveCommand.Create(() =>
         {
-            var viewLocator = Locator.Current.GetService<IViewLocator>();
-            var viewModel = new CategorizationWindowViewModel();
-            var view = viewLocator!.ResolveView(viewModel);
+            var viewLocator = Locator.Current.GetRequiredService<IViewLocator>();
+            var viewModel = Locator.Current.GetRequiredService<CategorizationWindowViewModel>();
+            var view = viewLocator.ResolveView(viewModel);
 
             if (view is not ReactiveWindow<CategorizationWindowViewModel> window)
                 throw new Exception("ViewModel does not have associated Window");

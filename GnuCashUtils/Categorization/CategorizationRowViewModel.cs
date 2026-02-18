@@ -14,6 +14,7 @@ public partial class CategorizationRowViewModel : ViewModelBase
     public decimal Amount { get; init; }
     [Reactive] public partial Account? SelectedAccount { get; set; }
     [Reactive] public partial double Confidence { get; set; }
+    public string? IgnoredLabel { get; private set; }
     public bool IsManuallyEdited { get; private set; }
     
     private readonly ObservableAsPropertyHelper<bool> _isValid;
@@ -48,10 +49,11 @@ public partial class CategorizationRowViewModel : ViewModelBase
             .Subscribe(_ => { IsManuallyEdited = true; });
     }
 
-    public void SetFromClassifier(Account? account, double confidence)
+    public void SetFromClassifier(Account? account, double confidence, string? ignoredLabel = null)
     {
         SelectedAccount = account;
         Confidence = confidence;
+        IgnoredLabel = ignoredLabel;
         IsManuallyEdited = false;
     }
 }

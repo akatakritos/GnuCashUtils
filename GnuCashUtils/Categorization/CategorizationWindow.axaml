@@ -7,6 +7,9 @@
         x:Class="GnuCashUtils.Categorization.CategorizationWindow"
         x:DataType="categorization:CategorizationWindowViewModel"
         Title="Categorization">
+    <Design.DataContext>    
+        <categorization:CategorizationWindowViewModel/>
+    </Design.DataContext>
 
     <DockPanel Margin="8">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0 0 0 8" Spacing="8">
@@ -16,7 +19,7 @@
                       IsChecked="{Binding ShowOnlyErrors}"
                       VerticalAlignment="Center" />
         </StackPanel>
-        
+
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8">
             <ProgressBar Minimum="0" Maximum="1" IsVisible="{Binding IsBuildingClassifier}" Value="{Binding BuildingProgress}" />
             <TextBlock IsVisible="{Binding !IsBuildingClassifier}" Text="{Binding InvalidCount, StringFormat='{}{0} transactions to categorize'}" VerticalAlignment="Center" />
@@ -28,10 +31,16 @@
                   ItemsSource="{Binding Rows}"
                   CanUserReorderColumns="True"
                   CanUserResizeColumns="True"
-                  FontSize="12">
+                  FontSize="11"
+                  RowHeight="22">
             <DataGrid.Styles>
-                <Style Selector="DataGridTextColumn">
-                    <Setter Property="FontSize" Value="12" />
+                <Style Selector="DataGridCell">
+                    <Setter Property="Padding" Value="4 1" />
+                    <Setter Property="FontSize" Value="11" />
+                    <Setter Property="MinHeight" Value="0" />
+                </Style>
+                <Style Selector="DataGridCell" x:DataType="categorization:CategorizationRowViewModel">
+                    <Setter Property="Background" Value="{Binding IsValid, Converter={x:Static categorization:ValidToRowBrushConverter.Instance}}" />
                 </Style>
             </DataGrid.Styles>
             <DataGrid.Columns>
@@ -39,28 +48,33 @@
                 <DataGridTextColumn Header=""
                                     Binding="{Binding StatusIcon}"
                                     IsReadOnly="True"
-                                    Width="48" />
+                                    Width="36" />
 
                 <DataGridTextColumn Header="Date"
-                                    Binding="{Binding Date}"
+                                    Binding="{Binding Date, StringFormat='{}{0:yyyy-MM-dd}'}"
                                     IsReadOnly="True"
-                                    Width="100" />
+                                    Width="90" />
 
                 <DataGridTextColumn Header="Description"
                                     Binding="{Binding Description}"
-                                    Width="280"  />
+                                    Width="*" />
 
-                <DataGridTextColumn Header="Amount"
-                                    Binding="{Binding Amount}"
-                                    IsReadOnly="True"
-                                    Width="100" />
+                <DataGridTemplateColumn Header="Amount" Width="100" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="categorization:CategorizationRowViewModel">
+                            <TextBlock Text="{Binding Amount, StringFormat='{}{0:N2}'}"
+                                       TextAlignment="Right"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
                 <DataGridTemplateColumn Header="Account" Width="240">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="categorization:CategorizationRowViewModel">
                             <TextBlock Text="{Binding SelectedAccount.Name}"
-                                       VerticalAlignment="Center"
-                                       Margin="4 0" />
+                                       VerticalAlignment="Center" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                     <DataGridTemplateColumn.CellEditingTemplate>
@@ -80,14 +94,24 @@
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTextColumn Header="Confidence"
-                                    Binding="{Binding Confidence, StringFormat='{}{0:P0}'}"
-                                    IsReadOnly="True"
-                                    Width="100" />
+                <DataGridTemplateColumn Header="Confidence" Width="130" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="categorization:CategorizationRowViewModel">
+                            <Border Background="{Binding Confidence, Converter={x:Static categorization:ConfidenceToColorConverter.Instance}}"
+                                    Padding="4 2"
+                                    ToolTip.Tip="{Binding IgnoredLabel}">
+                                <TextBlock Text="{Binding Confidence, StringFormat='{}{0:P0}'}"
+                                           TextAlignment="Right"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
             </DataGrid.Columns>
         </DataGrid>
-        
+
     </DockPanel>
 
 </Window>
