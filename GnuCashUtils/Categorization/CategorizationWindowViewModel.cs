@@ -57,9 +57,9 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         CsvFilePath = "";
         StatusMessage = "";
         _configService = configService ?? Locator.Current.GetRequiredService<IConfigService>();
-        _mediator = mediator ?? Locator.Current.GetRequiredService<IMediator>()!;
-        _classifierBuilder = classifierBuilder ?? Locator.Current.GetRequiredService<ClassifierBuilder>()!;
-        store ??= Locator.Current.GetRequiredService<IAccountStore>()!;
+        _mediator = mediator ?? Locator.Current.GetRequiredService<IMediator>();
+        _classifierBuilder = classifierBuilder ?? Locator.Current.GetRequiredService<IClassifierBuilder>()!;
+        store ??= Locator.Current.GetRequiredService<IAccountStore>();
 
         store.Accounts
             .Connect()
