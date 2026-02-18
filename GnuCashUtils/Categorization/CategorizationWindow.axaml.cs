@@ -72,8 +72,10 @@ public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowV
         {
             item.Click += (_, _) =>
             {
-                if (_contextMenuTargetRow != null)
-                    _contextMenuTargetRow.SelectedAccount = account;
+                var selected = CsvDataGrid.SelectedItems
+                    .OfType<CategorizationRowViewModel>();
+                foreach (var row in selected)
+                    row.SelectedAccount = account;
             };
         }
         return item;
