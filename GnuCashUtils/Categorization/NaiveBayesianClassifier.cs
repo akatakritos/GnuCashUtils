@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -55,35 +54,37 @@ public class NaiveBayesianClassifier
         }
     }
 
-    public string Predict(string description, decimal amount)
+    public Prediction Predict(string description, decimal amount)
     {
         var tokens = _tokenizer.Tokenize(description, amount).ToList();
-        string? bestLabel = null;
-        var bestScore = double.NegativeInfinity;
+        var scores = new Dictionary<string, double>(_labels.Count);
 
         foreach (var (label, data) in _labels)
         {
             var score = Math.Log(data.DocCount / (double)_totalDocs);
-            
+
             foreach (var token in tokens)
             {
                 var wordCount = data.WordCounts.GetValueOrDefault(token, 0);
-                score += Math.Log(wordCount + 1 / ((double)data.TotalWords + _vocabulary.Count));
+                score += Math.Log((wordCount + 1) / ((double)data.TotalWords + _vocabulary.Count));
             }
 
-            if (score > bestScore)
-            {
-                bestScore = score;
-                bestLabel = label;
-            }
+            scores[label] = score;
         }
-        
-        Debug.Assert(bestLabel != null);
-        return bestLabel;
 
+        var best = scores.MaxBy(kvp => kvp.Value);
+        var maxScore = best.Value;
+
+        // Softmax with numerical stability (subtract max to avoid overflow)
+        var sumExp = scores.Values.Sum(s => Math.Exp(s - maxScore));
+        var confidence = 1.0 / sumExp; // exp(maxScore - maxScore) / sumExp
+
+        return new Prediction(best.Key, confidence);
     }
     
 }
+
+public record Prediction(string Label, double Confidence);
 
 public interface ITokenizer
 {

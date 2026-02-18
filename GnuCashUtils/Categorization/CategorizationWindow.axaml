@@ -80,6 +80,11 @@
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
 
+                <DataGridTextColumn Header="Confidence"
+                                    Binding="{Binding Confidence, StringFormat='{}{0:P0}'}"
+                                    IsReadOnly="True"
+                                    Width="100" />
+
             </DataGrid.Columns>
         </DataGrid>
         

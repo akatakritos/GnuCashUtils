@@ -13,6 +13,7 @@ public partial class CategorizationRowViewModel : ViewModelBase
     [Reactive] public partial string Description { get; set; }
     public decimal Amount { get; init; }
     [Reactive] public partial Account? SelectedAccount { get; set; }
+    [Reactive] public partial double Confidence { get; set; }
     public bool IsManuallyEdited { get; private set; }
     
     private readonly ObservableAsPropertyHelper<bool> _isValid;
@@ -47,9 +48,10 @@ public partial class CategorizationRowViewModel : ViewModelBase
             .Subscribe(_ => { IsManuallyEdited = true; });
     }
 
-    public void SetFromClassifier(Account? account)
+    public void SetFromClassifier(Account? account, double confidence)
     {
         SelectedAccount = account;
+        Confidence = confidence;
         IsManuallyEdited = false;
     }
 }

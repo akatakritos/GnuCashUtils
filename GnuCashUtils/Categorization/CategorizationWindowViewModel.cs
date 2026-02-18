@@ -178,8 +178,11 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
             for (var i = 0; i < rows.Count; i++)
             {
                 var rowVm = new CategorizationRowViewModel(rows[i].Date, rows[i].Description, rows[i].Amount, i);
-                var predictedAccount = classifier.Predict(rowVm.Description, rowVm.Amount);
-                rowVm.SetFromClassifier(Accounts.FirstOrDefault(a => a.FullName == predictedAccount));
+                var prediction = classifier.Predict(rowVm.Description, rowVm.Amount);
+                var predictedAccount = prediction.Confidence >= 0.5
+                    ? Accounts.FirstOrDefault(a => a.FullName == prediction.Label)
+                    : null;
+                rowVm.SetFromClassifier(predictedAccount, prediction.Confidence);
                 updater.AddOrUpdate(rowVm);
             }
         });

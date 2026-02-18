@@ -15,8 +15,13 @@ public class NaiveBayesianClassifierTests
         _classifier.Train("meeting tomorrow at 3pm let me know", 0, "ham");
         _classifier.Train("can you send me the quarterly report", 0, "ham");
 
-        _classifier.Predict("free money limited offer", 0).Should().Be("spam");
-        _classifier.Predict("send me the report by friday", 0).Should().Be("ham");
+        var spam = _classifier.Predict("free money limited offer", 0);
+        spam.Label.Should().Be("spam");
+        spam.Confidence.Should().BeInRange(0.0, 1.0);
+
+        var ham = _classifier.Predict("send me the report by friday", 0);
+        ham.Label.Should().Be("ham");
+        ham.Confidence.Should().BeInRange(0.0, 1.0);
     }
 }
 
