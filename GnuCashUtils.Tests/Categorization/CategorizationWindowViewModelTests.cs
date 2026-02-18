@@ -30,7 +30,6 @@ public class CategorizationWindowViewModelTests
         {
             Banks = [SampleConfig],
             Database = "",
-            Merchants = []
         };
 
         public Fixture WithTransactions(List<CsvRow> transactions)

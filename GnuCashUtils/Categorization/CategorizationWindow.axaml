@@ -55,10 +55,6 @@
                                     IsReadOnly="True"
                                     Width="100" />
 
-                <DataGridTextColumn Header="Merchant"
-                                    Binding="{Binding Merchant}"
-                                    Width="160" />
-
                 <DataGridTemplateColumn Header="Account" Width="240">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="categorization:CategorizationRowViewModel">

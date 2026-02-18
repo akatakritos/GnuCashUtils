@@ -12,7 +12,6 @@ public partial class CategorizationRowViewModel : ViewModelBase
     public DateOnly Date { get; init; }
     [Reactive] public partial string Description { get; set; }
     public decimal Amount { get; init; }
-    [Reactive] public partial string Merchant { get; set; }
     [Reactive] public partial Account? SelectedAccount { get; set; }
     public bool IsManuallyEdited { get; private set; }
     
@@ -30,7 +29,6 @@ public partial class CategorizationRowViewModel : ViewModelBase
         Date = date;
         Description = description;
         Amount = amount;
-        Merchant = "";
 
         _isValid = this.WhenAnyValue(x => x.SelectedAccount)
             .Select(a => a is not null)
@@ -44,18 +42,13 @@ public partial class CategorizationRowViewModel : ViewModelBase
             .Skip(1)
             .Subscribe(_ => { IsManuallyEdited = true; });
 
-        this.WhenAnyValue(x => x.Merchant)
-            .Skip(1)
-            .Subscribe(_ => {  IsManuallyEdited = true; });
-
         this.WhenAnyValue(x => x.SelectedAccount)
             .Skip(1)
             .Subscribe(_ => { IsManuallyEdited = true; });
     }
 
-    public void SetFromConfig(string merchant, Account? account)
+    public void SetFromClassifier(Account? account)
     {
-        Merchant = merchant;
         SelectedAccount = account;
         IsManuallyEdited = false;
     }

@@ -1,12 +1,6 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
-using System.Collections.ObjectModel;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using CsvHelper;
 using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
@@ -30,17 +24,6 @@ sealed class Program
         if (args.Length > 0 && args[0] == "accounts")
         {
             RunAccounts();
-            return;
-        }
-
-        if (args.Length > 0 && args[0] == "analyze")
-        {
-            if (args.Length < 2)
-            {
-                Console.Error.WriteLine("Usage: GnuCashUtils analyze <path_to_csv>");
-                Environment.Exit(1);
-            }
-            RunAnalyze(args[1]);
             return;
         }
 
@@ -96,36 +79,4 @@ sealed class Program
             Console.WriteLine(account.FullName);
     }
 
-    private static void RunAnalyze(string csvPath)
-    {
-        var services = new ServiceCollection();
-        RegisterCoreServices(services);
-        var provider = services.BuildServiceProvider();
-
-        var configService = provider.GetRequiredService<IConfigService>();
-        var config = configService.CurrentConfig;
-
-        var fileName = Path.GetFileName(csvPath);
-        var bankConfig = config.Banks.FirstOrDefault(bank => Regex.IsMatch(fileName, bank.Match));
-
-        if (bankConfig is null)
-        {
-            Console.Error.WriteLine($"No bank configuration matched '{fileName}'. Check config.yml.");
-            Environment.Exit(1);
-            return;
-        }
-
-        var mediator = provider.GetRequiredService<IMediator>();
-        var rows = mediator.Send(new ParseCsvRequest(csvPath, bankConfig)).GetAwaiter().GetResult();
-
-        var matcher = new MerchantMatcher(config.Merchants);
-        var emptyAccounts = new ObservableCollection<Account>();
-
-        var unmatched = rows
-            .Where(row => matcher.Match(new CategorizationRowViewModel(row.Date, row.Description, row.Amount)) is null)
-            .ToList();
-
-        using var csvWriter = new CsvWriter(Console.Out, CultureInfo.InvariantCulture);
-        csvWriter.WriteRecords(unmatched);
-    }
 }

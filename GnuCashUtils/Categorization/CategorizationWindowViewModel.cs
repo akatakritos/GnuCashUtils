@@ -104,19 +104,6 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
             canExecute: errorCount.Select(n => n == 0));
 
 
-        _configService.Config
-            .Skip(1)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(config =>
-            {
-                var matcher = new MerchantMatcher(config.Merchants);
-                foreach (var row in _source.Items)
-                {
-                    if (!row.IsManuallyEdited)
-                        ApplyMatch(row, matcher.Match(row));
-                }
-            });
-
         _classifierBuilder.Status
             .Select(s => s == ClassifierBuilder.BuilderStatus.Running)
             .ToProperty(this, x => x.IsBuildingClassifier, out _isBuildingClassifierHelper);
@@ -146,20 +133,14 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         csv.WriteField("date");
         csv.WriteField("description");
         csv.WriteField(amountHeader);
-        csv.WriteField("merchant");
         csv.WriteField("transfer_account");
         csv.NextRecord();
 
         foreach (var row in _source.Items.OrderBy(r => r.CsvIndex))
         {
-            var description = string.IsNullOrEmpty(row.Merchant)
-                ? row.Description
-                : $"[{row.Merchant}] {row.Description}";
-
             csv.WriteField(row.Date.ToString("yyyy-MM-dd"));
-            csv.WriteField(description);
+            csv.WriteField(row.Description);
             csv.WriteField(row.Amount);
-            csv.WriteField(row.Merchant);
             csv.WriteField(row.SelectedAccount?.FullName ?? "");
             csv.NextRecord();
         }
@@ -198,20 +179,10 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
             {
                 var rowVm = new CategorizationRowViewModel(rows[i].Date, rows[i].Description, rows[i].Amount, i);
                 var predictedAccount = classifier.Predict(rowVm.Description, rowVm.Amount);
-                ApplyMatch(rowVm, new MatchResult("<MERCHANT>", predictedAccount));
+                rowVm.SetFromClassifier(Accounts.FirstOrDefault(a => a.FullName == predictedAccount));
                 updater.AddOrUpdate(rowVm);
             }
         });
-    }
-
-    private void ApplyMatch(CategorizationRowViewModel row, MatchResult? match)
-    {
-        if (match is null) return;
-        
-        row.SetFromConfig(
-            match.Name,
-            Accounts.FirstOrDefault(a => a.FullName == match.Account)
-        );
     }
 
     public ViewModelActivator Activator { get; } = new();
