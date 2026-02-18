@@ -100,27 +100,45 @@ public partial class Tokenizer : ITokenizer
     
     public IEnumerable<string> Tokenize(string description, decimal amount)
     {
-        var tokens = SplitRegex().Split(description.ToUpperInvariant());
-        
-        for (var i = 0; i < tokens.Length; i++)
+        var tokens = new TokenIterator(SplitRegex().Split(description.ToUpperInvariant()));
+        do
         {
-            if (tokens[i].Length <= 2)
+            if (tokens.Current.Length <= 2)
                 continue;
-            
-            if (ApplePayRegex().Match(tokens[i]).Success && i < tokens.Length - 1 && tokens[i + 1] == "PAY")
+
+            if (ApplePayRegex().Match(tokens.Current).Success && tokens.Peek() == "PAY")
             {
-                i++; // skip PAY
+                tokens.MoveNext();
                 continue;
             }
 
-            if (_skipWords.Contains(tokens[i]))
+            if (tokens.Current == "BLUE" && tokens.Peek() == "SPRINGS")
                 continue;
             
-            if (_skipRegexes.Any(r => r.Match(tokens[i]).Success))
+
+            if (_skipWords.Contains(tokens.Current))
                 continue;
 
-            yield return tokens[i];
+            if (_skipRegexes.Any(r => r.Match(tokens.Current).Success))
+                continue;
+
+            yield return tokens.Current;
+        } while (tokens.MoveNext());
+    }
+
+    class TokenIterator
+    {
+        private readonly string[] _tokens;
+        public int Index { get; private set; } = 0;
+        public string Current => _tokens[Index];
+        public string? Peek() => Index + 1 < _tokens.Length ? _tokens[Index + 1] : null;
+        public TokenIterator(string[] tokens)
+        {
+            _tokens = tokens;
         }
+        
+        public bool MoveNext() => ++Index < _tokens.Length;
+        
     }
 
     [GeneratedRegex(@"[\s\-*#]+", RegexOptions.Compiled)]
