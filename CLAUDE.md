@@ -60,3 +60,41 @@ Always `using DynamicData.Aggregation;` when using `Count()` on a DynamicData pi
 We use AwesomeAssertions (previously called FluentAssertions)
 
 Generally mock calls to mediatr when testing view models
+
+### Fixture class pattern for ViewModel tests
+
+For ViewModel tests with multiple dependencies, use an inner `Fixture` class that holds the mocks and a fluent builder. Example pattern:
+
+```csharp
+public class MyViewModelTests
+{
+    private readonly Fixture _fixture = new();
+
+    class Fixture
+    {
+        public IMediator MockMediator = Substitute.For<IMediator>();
+        // ... other mocks ...
+
+        public Fixture WithSomething(SomeConfig config) { /* mutate state */ return this; }
+
+        public MyViewModel BuildSubject()
+        {
+            // wire up mocks
+            var vm = new MyViewModel(MockMediator, ...);
+            // Register no-op handlers for any Interactions, so tests that don't
+            // care about them don't crash. Tests can override by registering their
+            // own handler after BuildSubject() — the last-registered handler wins.
+            vm.SomeInteraction.RegisterHandler(ctx => ctx.SetOutput(default));
+            vm.Activator.Activate();
+            return vm;
+        }
+    }
+}
+```
+
+Key points:
+- **Default to the happy path** — `AppConfig` and other state should be pre-populated with valid defaults so `BuildSubject()` works without any setup in the common case
+- `With*` / `WithNo*` methods mutate fixture state and return `this` for fluent chaining, used only when a test needs to deviate from the happy path: `_fixture.WithNoBanks().BuildSubject()`
+- Always register no-op handlers for `Interaction<,>` in `BuildSubject()` to prevent `UnhandledInteractionException` in tests that don't need them; tests that DO care register their own handler after `BuildSubject()` (last-registered wins)
+- Expose config objects (e.g. `SampleConfig`) as `public static` so tests can reference them in assertions
+- See `CategorizationWindowViewModelTests.cs` for a complete example

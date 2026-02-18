@@ -1,73 +1,122 @@
-using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using DynamicData;
-using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
 using MediatR;
 using NSubstitute;
+using ReactiveUI;
 using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.Tests.Categorization;
 
 public class CategorizationWindowViewModelTests
 {
-    private static readonly BankConfig SampleConfig = new()
+    private readonly Fixture _fixture = new();
+
+    class Fixture
     {
-        Name = "Sample",
-        Match = @"sample\.csv$",
-        Skip = 1,
-        Headers = "{date:yyyy-MM-dd},{description},{amount}"
-    };
+        public IMediator MockMediator = Substitute.For<IMediator>();
+        public IConfigService MockConfigService = Substitute.For<IConfigService>();
+        public IAccountStore MockAccountStore = Substitute.For<IAccountStore>();
+        public IClassifierBuilder MockClassifierBuilder = Substitute.For<IClassifierBuilder>();
 
-    private static readonly List<CsvRow> SampleRows =
-    [
-        new(new DateOnly(2024, 1, 15), "Grocery Store", -45.00m),
-        new(new DateOnly(2024, 1, 16), "Gas Station", -60.00m),
-        new(new DateOnly(2024, 1, 20), "Salary", 3000.00m),
-    ];
+        private List<CsvRow> _transactions = SampleRows;
 
-    private static readonly List<MerchantConfig> SampleMerchants =
-    [
-        new() { Match = "contains(\"grocery\")", Name = "Grocery Store", Account = "Expenses:Groceries" },
-    ];
+        public AppConfig AppConfig = new()
+        {
+            Banks = [SampleConfig],
+            Database = "",
+            Merchants = []
+        };
 
-    private static readonly List<Account> SampleAccounts =
-    [
-        new Account() { FullName = "Expenses:Groceries" }
-    ];
+        public Fixture WithTransactions(List<CsvRow> transactions)
+        {
+            _transactions = transactions;
+            return this;
+        }
 
-    private static (CategorizationWindowViewModel Vm, IMediator Mediator) Build(
-        BankConfig? match = null,
-        List<CsvRow>? rows = null,
-        List<MerchantConfig>? merchants = null
-        )
-    {
-        var mediator = Substitute.For<IMediator>();
-        mediator.Send(Arg.Any<ParseCsvRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(rows ?? SampleRows));
+        public Fixture WithBank(BankConfig bankConfig)
+        {
+            AppConfig.Banks.Add(bankConfig);
+            return this;
+        }
 
-        var configSvc = Substitute.For<IConfigService>();
-        configSvc.CurrentConfig.Returns(new AppConfig { Banks = match != null ? [match] : [], Merchants = merchants ?? SampleMerchants });
+        public Fixture WithNoBanks()
+        {
+            AppConfig.Banks.Clear();
+            return this;
+        }
 
-        var accountsCache = new SourceCache<Account, string>(x => x.FullName);
-        accountsCache.AddOrUpdate(SampleAccounts);
-        var store = Substitute.For<IAccountStore>();
-        store.Accounts.Returns(accountsCache);
-        store.AccountTree.Returns(accountsCache);
+        public SourceCache<Account, string> Accounts = new(x => x.FullName);
 
-        var vm = new CategorizationWindowViewModel(mediator, configSvc, store);
-        vm.Activator.Activate();
-        return (vm, mediator);
+        public CategorizationWindowViewModel BuildSubject()
+        {
+            MockMediator.Send(Arg.Any<ParseCsvRequest>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(_transactions));
+
+            MockConfigService.CurrentConfig.Returns(AppConfig);
+
+            Accounts.AddOrUpdate(SampleAccounts);
+            MockAccountStore.Accounts.Returns(Accounts);
+            MockAccountStore.AccountTree.Returns(Accounts);
+
+            MockClassifierBuilder.Status.Returns(Observable.Never<ClassifierBuilder.BuilderStatus>());
+            MockClassifierBuilder.Progress.Returns(Observable.Never<double>());
+            MockClassifierBuilder.Build(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(BuildClassifier()));
+
+            var vm = new CategorizationWindowViewModel(MockMediator, MockConfigService, MockAccountStore,
+                MockClassifierBuilder);
+            vm.ShowError.RegisterHandler(ctx => ctx.SetOutput(Unit.Default));
+            vm.Activator.Activate();
+            return vm;
+        }
+
+
+        public static readonly BankConfig SampleConfig = new()
+        {
+            Name = "Sample",
+            Match = @"sample\.csv$",
+            Skip = 1,
+            Headers = "{date:yyyy-MM-dd},{description},{amount}",
+            Account = "Expenses:Groceries"
+        };
+
+        private static readonly List<CsvRow> SampleRows =
+        [
+            new(new DateOnly(2024, 1, 15), "Grocery Store", -45.00m),
+            new(new DateOnly(2024, 1, 16), "Gas Station", -60.00m),
+            new(new DateOnly(2024, 1, 20), "Salary", 3000.00m),
+        ];
+
+        private static readonly List<Account> SampleAccounts =
+        [
+            new Account() { Guid = "groceries-guid", FullName = "Expenses:Groceries" }
+        ];
+
+        /// <summary>
+        /// Returns a classifier trained so "Grocery Store" predicts "Expenses:Groceries"
+        /// while "Gas Station" and "Salary" predict accounts not present in SampleAccounts.
+        /// </summary>
+        private static NaiveBayesianClassifier BuildClassifier()
+        {
+            var classifier = new NaiveBayesianClassifier(new Tokenizer());
+            classifier.Train("Grocery Store", -45.00m, "Expenses:Groceries");
+            classifier.Train("Gas Station", -60.00m, "Expenses:Fuel");
+            classifier.Train("Salary", 3000.00m, "Income:Salary");
+            return classifier;
+        }
     }
+
 
     [Fact]
     public async Task ItPopulatesRowsFromHandlerResult()
     {
-        var (vm, _) = Build(SampleConfig);
+        var vm = _fixture.BuildSubject();
         await vm.LoadCsv(Fixtures.File("sample.csv"));
 
         vm.Rows.Should().HaveCount(3);
@@ -79,19 +128,19 @@ public class CategorizationWindowViewModelTests
     [Fact]
     public async Task ItSendsCorrectRequestToHandler()
     {
-        var (vm, mediator) = Build(SampleConfig);
+        var vm = _fixture.BuildSubject();
         var path = Fixtures.File("sample.csv");
         await vm.LoadCsv(path);
 
-        await mediator.Received(1).Send(
-            Arg.Is<ParseCsvRequest>(r => r.FilePath == path && r.Config == SampleConfig),
+        await _fixture.MockMediator.Received(1).Send(
+            Arg.Is<ParseCsvRequest>(r => r.FilePath == path && r.Config == _fixture.AppConfig.Banks[0]),
             Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task ItSetsCsvFilePath()
     {
-        var (vm, _) = Build(SampleConfig);
+        var vm = _fixture.BuildSubject();
         var path = Fixtures.File("sample.csv");
         await vm.LoadCsv(path);
 
@@ -101,7 +150,7 @@ public class CategorizationWindowViewModelTests
     [Fact]
     public async Task ItShowsErrorAndDoesNotLoadWhenNoBankConfigMatches()
     {
-        var (vm, _) = Build(match: null);
+        var vm = _fixture.WithNoBanks().BuildSubject();
         string? errorMessage = null;
         vm.ShowError.RegisterHandler(ctx =>
         {
@@ -118,10 +167,10 @@ public class CategorizationWindowViewModelTests
     [Fact]
     public async Task FilteringMaintainsOriginalOrder()
     {
-        var (vm, _) = Build(match: SampleConfig, merchants: SampleMerchants);
+        var vm = _fixture.BuildSubject();
         await vm.LoadCsv(Fixtures.File("sample.csv"));
 
-        // Grocery Store (index 0) matched an account → valid; others are invalid
+        // "Grocery Store" is predicted to a known account → valid; others predict unknown accounts → invalid
         vm.Rows[0].Description.Should().Be("Grocery Store");
         vm.Rows[1].Description.Should().Be("Gas Station");
         vm.Rows[2].Description.Should().Be("Salary");
@@ -139,7 +188,7 @@ public class CategorizationWindowViewModelTests
     [Fact]
     public async Task Filtering()
     {
-        var (vm,_) = Build(match: SampleConfig, merchants: SampleMerchants);
+        var vm = _fixture.BuildSubject();
         await vm.LoadCsv(Fixtures.File("sample.csv"));
         vm.Rows.Should().HaveCount(3);
 
@@ -151,19 +200,18 @@ public class CategorizationWindowViewModelTests
     }
 
     [Fact]
-    public async Task ItAppliesMerchantMatchWhenLoadingCsv()
+    public async Task ItAppliesClassifierPredictionWhenLoadingCsv()
     {
-        var (vm, _) = Build(match: SampleConfig, merchants: SampleMerchants);
+        var vm = _fixture.BuildSubject();
         await vm.LoadCsv(Fixtures.File("sample.csv"));
 
         var groceryRow = vm.Rows.Single(r => r.Description == "Grocery Store");
-        groceryRow.Merchant.Should().Be("Grocery Store");
         groceryRow.SelectedAccount.Should().NotBeNull();
         groceryRow.SelectedAccount!.FullName.Should().Be("Expenses:Groceries");
         groceryRow.IsValid.Should().BeTrue();
 
         vm.Rows.Where(r => r.Description != "Grocery Store").Should().OnlyContain(r => !r.IsValid);
-        
+
         vm.Rows.Count(x => !x.IsValid).Should().Be(2);
         vm.InvalidCount.Should().Be(2);
     }
