@@ -20,11 +20,15 @@ using ReactiveUI.SourceGenerators;
 using Splat;
 using Unit = System.Reactive.Unit;
 using DynamicData.Aggregation;
+using Serilog;
+using ILogger = Serilog.ILogger;
 
 namespace GnuCashUtils.Categorization;
 
 public partial class CategorizationWindowViewModel : ViewModelBase, IActivatableViewModel
 {
+    private static readonly ILogger _log = Log.ForContext<CategorizationWindowViewModel>();
+
     private readonly IMediator _mediator;
     private readonly IConfigService _configService;
     private readonly IClassifierBuilder _classifierBuilder;
@@ -149,6 +153,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
             csv.NextRecord();
         }
 
+        _log.Information("Saved to {OutputPath}", outputPath);
         StatusMessage = $"Saved to {outputPath}";
         return Task.CompletedTask;
     }
@@ -191,6 +196,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
                 updater.AddOrUpdate(rowVm);
             }
         });
+        _log.Information("Loaded {Count} rows from {FilePath}", rows.Count, filePath);
     }
 
     public ViewModelActivator Activator { get; } = new();

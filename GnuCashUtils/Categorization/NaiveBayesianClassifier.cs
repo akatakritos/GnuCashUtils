@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Serilog;
 
 namespace GnuCashUtils.Categorization;
 
 public class NaiveBayesianClassifier
 {
+    private static ILogger _log { get; } = Log.ForContext<NaiveBayesianClassifier>();
     private class LabelData
     {
         public Dictionary<string, int> WordCounts { get; set; } = new();
@@ -59,6 +61,9 @@ public class NaiveBayesianClassifier
         var tokens = _tokenizer.Tokenize(description, amount).ToList();
         var scores = new Dictionary<string, double>(_labels.Count);
 
+        if (_log.IsEnabled(Serilog.Events.LogEventLevel.Debug))
+            _log.Debug("Predicting {Description} ({Amount}) => {Tokens}", description, amount, tokens);
+        
         foreach (var (label, data) in _labels)
         {
             var score = Math.Log(data.DocCount / (double)_totalDocs);

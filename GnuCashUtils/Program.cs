@@ -1,14 +1,17 @@
 using Avalonia;
-using Avalonia.ReactiveUI;
 using System;
+using Avalonia.ReactiveUI;
 using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
+using GnuCashUtils.Core.Behaviors;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using Serilog;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Splat;
+using Splat.Serilog;
 using BulkEditWindow = GnuCashUtils.BulkEdit.BulkEditWindow;
 
 namespace GnuCashUtils;
@@ -26,6 +29,17 @@ sealed class Program
             RunAccounts();
             return;
         }
+        
+        Log.Logger = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+            // .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command",
+            //     Serilog.Events.LogEventLevel.Warning)
+            .WriteTo.Console(
+                outputTemplate:
+                "[{Timestamp:yyyy-MM-dd HH:mm:ss.ff} {SourceContext,-48} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
 
         var app = BuildAvaloniaApp();
         RegisterUiServices();
@@ -43,7 +57,11 @@ sealed class Program
     private static void RegisterCoreServices(IServiceCollection services)
     {
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblyContaining<Program>();
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
         services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
         services.AddSingleton<IConfigService, ConfigService>();
     }
@@ -58,6 +76,7 @@ sealed class Program
         services.AddTransient<IClassifierBuilder, ClassifierBuilder>();
         services.AddTransient<CategorizationWindowViewModel>();
         services.UseMicrosoftDependencyResolver();
+        Locator.CurrentMutable.UseSerilogFullLogger();
     }
 
     private static void RunAccounts()

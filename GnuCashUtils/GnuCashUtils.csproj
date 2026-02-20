@@ -29,7 +29,11 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Serilog" Version="4.3.1" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+        <PackageReference Include="SerilogTimings" Version="3.1.0" />
         <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="15.3.1" />
+        <PackageReference Include="Splat.Serilog" Version="15.3.1" />
         <PackageReference Include="YamlDotNet" Version="16.3.0" />
     </ItemGroup>
 
