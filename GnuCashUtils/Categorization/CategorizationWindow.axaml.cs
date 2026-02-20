@@ -63,22 +63,26 @@ public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowV
     private MenuItem BuildMenuItem(Account account)
     {
         var item = new MenuItem { Header = account.Name };
-        if (account.Children.Count > 0)
+        // Use PointerReleased (marked Handled) instead of Click so that intermediate nodes
+        // (accounts with children) can be selected. Avalonia intercepts Click on parent MenuItems
+        // to open the submenu, preventing Click from firing. PointerReleased bubbles from the
+        // clicked node outward — marking it Handled stops ancestors from also firing their handlers.
+        item.AddHandler(PointerReleasedEvent, (_, e) =>
         {
-            foreach (var child in account.Children.OrderBy(c => c.Name))
-                item.Items.Add(BuildMenuItem(child));
-        }
-        else
-        {
-            item.Click += (_, _) =>
-            {
-                var selected = CsvDataGrid.SelectedItems
-                    .OfType<CategorizationRowViewModel>();
-                foreach (var row in selected)
-                    row.SelectedAccount = account;
-            };
-        }
+            ApplyAccount(account);
+            CsvDataGrid.ContextMenu?.Close();
+            e.Handled = true;
+        }, RoutingStrategies.Bubble);
+        foreach (var child in account.Children.OrderBy(c => c.Name))
+            item.Items.Add(BuildMenuItem(child));
         return item;
+    }
+
+    private void ApplyAccount(Account account)
+    {
+        var selected = CsvDataGrid.SelectedItems.OfType<CategorizationRowViewModel>();
+        foreach (var row in selected)
+            row.SelectedAccount = account;
     }
 
     private async void OpenCsvButton_Click(object? sender, RoutedEventArgs e)
