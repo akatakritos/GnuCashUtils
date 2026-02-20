@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using MediatR;
+using Serilog;
 
 namespace GnuCashUtils.Core;
 
@@ -28,6 +29,8 @@ public interface IAccountStore
 }
 public class AccountStore: IAccountStore
 {
+    private static readonly ILogger _log = Log.ForContext<AccountStore>();
+    
     private readonly IMediator _mediator;
 
     public AccountStore(IMediator mediator)
@@ -46,5 +49,6 @@ public class AccountStore: IAccountStore
         
         Accounts.AddOrUpdate(accounts);
         AccountTree.AddOrUpdate(tree);
+        _log.Debug("Added {Count} accounts", accounts.Count);
     }
 }

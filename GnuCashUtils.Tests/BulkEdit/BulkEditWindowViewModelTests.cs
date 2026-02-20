@@ -1,6 +1,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Threading.Tasks;
 using AwesomeAssertions;
+using DynamicData;
 using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Core;
 using MediatR;
@@ -18,6 +19,7 @@ public class BulkEditWindowViewModelTests
     class Fixture
     {
         public IMediator MockMediator = Substitute.For<IMediator>();
+        public IAccountStore MockAccountStore = Substitute.For<IAccountStore>();
         public TestScheduler TestScheduler = new();
 
         private List<SelectableTransactionViewModel> _transactions = SampleTransactions;
@@ -54,10 +56,10 @@ public class BulkEditWindowViewModelTests
             // ImmediateScheduler makes ObserveOn(MainThreadScheduler) synchronous.
             // TestScheduler controls the Throttle so tests advance virtual time instead of waiting.
             RxApp.MainThreadScheduler = ImmediateScheduler.Instance;
-            RxApp.TaskpoolScheduler = TestScheduler;
 
-            MockMediator.Send(Arg.Any<FetchAccountsRequest>(), Arg.Any<CancellationToken>())
-                .Returns(Task.FromResult(new List<Account> { SampleSourceAccount, SampleDestinationAccount }));
+            var accounts = new SourceCache<Account, string>(x => x.Guid);
+            accounts.AddOrUpdate([SampleSourceAccount, SampleDestinationAccount]);
+            MockAccountStore.Accounts.Returns(accounts);
 
             MockMediator.Send(Arg.Any<FetchTransactions>(), Arg.Any<CancellationToken>())
                 .Returns(_ => Task.FromResult(_transactions));
@@ -65,7 +67,9 @@ public class BulkEditWindowViewModelTests
             MockMediator.Send(Arg.Any<MoveTransactionsCommand>(), Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
 
-            return new BulkEditWindowViewModel(MockMediator, TestScheduler);
+            var vm = new BulkEditWindowViewModel(MockMediator, TestScheduler, MockAccountStore);
+            vm.Activator.Activate();
+            return vm;
         }
     }
 

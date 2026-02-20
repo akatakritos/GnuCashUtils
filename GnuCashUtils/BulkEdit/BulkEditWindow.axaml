@@ -11,11 +11,11 @@
     <DockPanel Margin="8">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 0 0 8">
             <TextBlock Text="Source Account" Margin="0 0 8 0" VerticalAlignment="Center"/>
-            <controls:AccountComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding SourceAccount}" MinWidth="300"
+            <controls:AccountComboBox ItemsSource="{Binding Accounts}" SelectedItem="{Binding SourceAccount}" MinWidth="300"
                              Margin="0 0 8 0" >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding FullName}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </controls:AccountComboBox>
@@ -26,11 +26,11 @@
 
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 8 0 0">
             <TextBlock Text="Move To" Margin="0 0 8 0" VerticalAlignment="Center"/>
-            <controls:AccountComboBox ItemsSource="{Binding Accounts^}" SelectedItem="{Binding DestinationAccount}" MinWidth="300"
+            <controls:AccountComboBox ItemsSource="{Binding Accounts}" SelectedItem="{Binding DestinationAccount}" MinWidth="300"
                              Margin="0 0 8 0">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding FullName}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </controls:AccountComboBox>

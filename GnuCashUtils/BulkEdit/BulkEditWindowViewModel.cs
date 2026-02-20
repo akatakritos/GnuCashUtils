@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -19,7 +20,7 @@ using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.BulkEdit;
 
-public partial class BulkEditWindowViewModel : ViewModelBase
+public partial class BulkEditWindowViewModel : ViewModelBase, IActivatableViewModel
 {
     [Reactive] public partial Account? SourceAccount { get; set; }
     [Reactive] public partial Account? DestinationAccount { get; set; }
@@ -29,21 +30,35 @@ public partial class BulkEditWindowViewModel : ViewModelBase
 
     public ReactiveCommand<Unit, Unit> MoveCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectAllCommand { get; }
-    
-    public IObservable<List<Account>> Accounts { get; }
+
+    [ObservableAsProperty] public partial IReadOnlyCollection<Account> Accounts { get; }
     public ObservableCollection<SelectableTransactionViewModel> Transactions { get; } = new();
-    
+
     public IObservable<int> TransactionCount { get; }
     public IObservable<int> FilteredTransactionCount { get; }
     public IObservable<int> SelectedTransactionCount { get; }
 
-    public BulkEditWindowViewModel(IMediator? mediator = null, IScheduler? threadPoolScheduler = null)
+    public ViewModelActivator Activator { get; } = new();
+
+    public BulkEditWindowViewModel(IMediator? mediator = null, IScheduler? threadPoolScheduler = null,
+        IAccountStore? store = null)
     {
+        _accounts = [];
         mediator ??= Locator.Current.GetRequiredService<IMediator>()!;
+        store ??= Locator.Current.GetRequiredService<IAccountStore>();
         _threadPoolScheduler = threadPoolScheduler ?? TaskPoolScheduler.Default;
         SearchText = "";
-        Accounts = Observable.FromAsync(() => mediator.Send(new FetchAccountsRequest()));
-        
+
+        store.Accounts
+            .Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .ToSortedCollection(x => x.FullName)
+            .ToProperty(this, x => x.Accounts, out _accountsHelper);
+
+        this.WhenActivated(d =>
+        {
+            _accountsHelper.DisposeWith(d);
+        });
 
         var accountTransactions = this.WhenAnyValue(x => x.SourceAccount)
             .Merge(_refreshRequested)
@@ -69,8 +84,8 @@ public partial class BulkEditWindowViewModel : ViewModelBase
                 Transactions.Clear();
                 Transactions.AddRange(x);
             });
-        
-        
+
+
         TransactionCount = accountTransactions.Select(t => t.Count);
         FilteredTransactionCount = this.WhenAnyValue(x => x.Transactions)
             .Select(t => t.Count);
@@ -91,7 +106,7 @@ public partial class BulkEditWindowViewModel : ViewModelBase
         MoveCommand = ReactiveCommand.CreateFromTask(async () =>
             {
                 if (SourceAccount == null || DestinationAccount == null) return;
-                
+
                 await mediator.Send(new MoveTransactionsCommand(Transactions, SourceAccount.Guid,
                     DestinationAccount.Guid));
                 _refreshRequested.OnNext(SourceAccount);
