@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GnuCashUtils.Tagger"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="GnuCashUtils.Tagger.TaggerWindow"
+        x:DataType="vm:TaggerWindowViewModel"
+        Title="TaggerWindow">
+    <Design.DataContext>
+        <vm:TaggerWindowViewModel />
+    </Design.DataContext>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
+            <TextBox Text="{Binding SearchText}" />
+            <!-- TODO: binding converter from DateTimeOffset to DateOnly -->
+            <DatePicker SelectedDate="{Binding StartDate}" />
+            <DatePicker SelectedDate="{Binding EndDate}" />
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8">
+            <AutoCompleteBox />
+            <Button Content="Apply" Command="{Binding ApplyCommand}" />
+            <Button Content="Save" Command="{Binding SaveCommand}" />
+        </StackPanel>
+
+        <DataGrid ItemsSource="{Binding Transactions}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date" Binding="{Binding Date}" IsReadOnly="True" />
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True" />
+                <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" IsReadOnly="True" />
+                <DataGridTextColumn Header="Expense Account" Binding="{Binding Account.Name}" IsReadOnly="True" />
+            </DataGrid.Columns>
+
+        </DataGrid>
+    </DockPanel>
+
+</Window>

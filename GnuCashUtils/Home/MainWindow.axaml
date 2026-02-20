@@ -15,7 +15,7 @@
         <home:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid Margin="8" RowDefinitions="Auto Auto Auto Auto" >
+    <Grid Margin="8" RowDefinitions="Auto Auto Auto Auto Auto" >
         <DockPanel Grid.Row="0" Margin="0 0 0 8">
             <Button Content="Open"  DockPanel.Dock="Right"  Margin="8 0 0 0" Click="Button_OnClick" />
             <TextBox Text="{Binding GnuCashFile}" IsEnabled="False"/>
@@ -28,6 +28,7 @@
 
         <Button Grid.Row="2" Content="Bulk Edit Account" Command="{Binding BulkEditAccountCommand}" Margin="0 0 0 8" />
         <Button Grid.Row="3" Content="Categorization" Command="{Binding CategorizationCommand}" />
+        <Button Grid.Row="4" Content="Tagger" Command="{Binding TaggerCommand}" />
     </Grid>
 
 </Window>

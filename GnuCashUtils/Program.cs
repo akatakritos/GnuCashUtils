@@ -5,6 +5,7 @@ using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
 using GnuCashUtils.Core.Behaviors;
+using GnuCashUtils.Tagger;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
@@ -71,10 +72,15 @@ sealed class Program
         var services = new ServiceCollection();
         RegisterCoreServices(services);
         services.AddTransient<IViewFor<BulkEditWindowViewModel>, BulkEditWindow>();
+        
         services.AddTransient<IViewFor<CategorizationWindowViewModel>, CategorizationWindow>();
+        services.AddTransient<CategorizationWindowViewModel>();
+        
+        services.AddTransient<IViewFor<TaggerWindowViewModel>, TaggerWindow>();
+        services.AddTransient<TaggerWindowViewModel>();
+        
         services.AddSingleton<IAccountStore, AccountStore>();
         services.AddTransient<IClassifierBuilder, ClassifierBuilder>();
-        services.AddTransient<CategorizationWindowViewModel>();
         services.UseMicrosoftDependencyResolver();
         Locator.CurrentMutable.UseSerilogFullLogger();
     }
