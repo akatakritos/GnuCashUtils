@@ -11,6 +11,7 @@ Tool for adding features to manage sqlite based gnucash files in an easier way
 
 - .NET 9 / Avalonia 11 desktop app
 - ReactiveUI + ReactiveUI.SourceGenerators (`[Reactive]` attribute for reactive properties)
+  - **IMPORTANT:** Classes using `[Reactive]` must be declared `partial` — the source generator silently produces no output without it, and `WhenAnyValue` will not receive property change notifications
 - MediatR for commands/queries (handlers live in the same file as the ViewModel)
 - Dapper for SQL queries against the SQLite GnuCash database
 - `IDbConnectionFactory` / `SqliteConnectionFactory` for DB access — always resolve via DI
