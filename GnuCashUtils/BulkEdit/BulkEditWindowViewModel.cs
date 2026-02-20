@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -24,7 +25,8 @@ public partial class BulkEditWindowViewModel : ViewModelBase
     [Reactive] public partial Account? DestinationAccount { get; set; }
     [Reactive] public partial string SearchText { get; set; }
     private readonly Subject<Account> _refreshRequested = new();
-    
+    private readonly IScheduler _threadPoolScheduler;
+
     public ReactiveCommand<Unit, Unit> MoveCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectAllCommand { get; }
     
@@ -35,9 +37,10 @@ public partial class BulkEditWindowViewModel : ViewModelBase
     public IObservable<int> FilteredTransactionCount { get; }
     public IObservable<int> SelectedTransactionCount { get; }
 
-    public BulkEditWindowViewModel(IMediator? mediator = null)
+    public BulkEditWindowViewModel(IMediator? mediator = null, IScheduler? threadPoolScheduler = null)
     {
-        mediator ??= Locator.Current.GetService<IMediator>()!;
+        mediator ??= Locator.Current.GetRequiredService<IMediator>()!;
+        _threadPoolScheduler = threadPoolScheduler ?? TaskPoolScheduler.Default;
         SearchText = "";
         Accounts = Observable.FromAsync(() => mediator.Send(new FetchAccountsRequest()));
         
@@ -46,7 +49,7 @@ public partial class BulkEditWindowViewModel : ViewModelBase
             .Merge(_refreshRequested)
             .Where(x => x != null)
             .Select(x => x!.Guid)
-            .Throttle(TimeSpan.FromMilliseconds(250))
+            .Throttle(TimeSpan.FromMilliseconds(250), _threadPoolScheduler)
             .DistinctUntilChanged()
             .Select(accountGuid =>
                 Observable.FromAsync((ct) => Task.Run(() => mediator.Send(new FetchTransactions(accountGuid), ct), ct)))
