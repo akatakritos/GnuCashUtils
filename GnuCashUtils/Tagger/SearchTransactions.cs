@@ -77,6 +77,7 @@ limit 1000
                 txn.Tags.AddRange(Tag.Parse(Notes));
             }
 
+            txn.IsDirty = false;
             return txn;
         }
     }

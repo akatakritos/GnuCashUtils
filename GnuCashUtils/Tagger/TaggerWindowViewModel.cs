@@ -101,7 +101,10 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
     private async Task SaveCommandImpl(CancellationToken cancellationToken)
     {
-        await Task.Run(() => _mediator.Send(new ApplyTags(Transactions.Where(t => t.IsDirty)), cancellationToken), cancellationToken);
+        var dirty = Transactions.Where(t => t.IsDirty).ToList();
+        await Task.Run(() => _mediator.Send(new ApplyTags(dirty), cancellationToken), cancellationToken);
+        foreach (var t in dirty)
+            t.IsDirty = false;
     }
 
     #region mode
@@ -156,7 +159,7 @@ public partial class TaggedTransaction : ViewModelBase
     public decimal Amount { get; set; }
     public required Account Account { get; init ; }
     public ObservableCollection<Tag> Tags { get; } = [];
-    [Reactive] public bool IsDirty { get; set; }
+    [Reactive] public partial bool IsDirty { get; set; }
     public int? SlotId { get; set; }
 
     public TaggedTransaction()

@@ -181,6 +181,23 @@ public class TaggerWindowViewModelTests
     }
 
     [Fact]
+    public async Task SaveCommandClearsDirtyFlagAfterSave()
+    {
+        var vm = _fixture.BuildSubject();
+        await AdvancePastThrottle();
+
+        vm.Transactions[0].IsDirty = true;
+        vm.Transactions[1].IsDirty = true;
+        vm.Transactions[2].IsDirty = false;
+
+        await vm.SaveCommand.Execute().ToTask();
+
+        vm.Transactions[0].IsDirty.Should().BeFalse();
+        vm.Transactions[1].IsDirty.Should().BeFalse();
+        vm.Transactions[2].IsDirty.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task SaveCommandDoesNotSendCleanTransactions()
     {
         var vm = _fixture.BuildSubject();

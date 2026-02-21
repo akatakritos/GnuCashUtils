@@ -65,6 +65,11 @@
         </Border>
 
         <DataGrid ItemsSource="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction}">
+            <DataGrid.Styles>
+                <Style Selector="DataGridRow" x:DataType="vm:TaggedTransaction">
+                    <Setter Property="FontWeight" Value="{Binding IsDirty, Converter={x:Static vm:Converters.BoolToFontWeight}}" />
+                </Style>
+            </DataGrid.Styles>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date" Binding="{Binding Date}" IsReadOnly="True" />
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True" />
