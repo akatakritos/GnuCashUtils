@@ -1,6 +1,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Threading.Tasks;
 using AwesomeAssertions;
+using GnuCashUtils.Core;
 using GnuCashUtils.Tagger;
 using MediatR;
 using Microsoft.Reactive.Testing;
@@ -22,11 +23,13 @@ public class TaggerWindowViewModelTests
         // Mutable so tests can change the return value via the captured closure.
         public List<TaggedTransaction> Transactions = MakeSampleTransactions();
 
+        public static readonly Account SampleAccount = new() { Guid = "acc-1", Name = "Checking", FullName = "Assets:Checking" };
+
         public static List<TaggedTransaction> MakeSampleTransactions() =>
         [
-            new() { TransactionGuid = "txn-1", Description = "Coffee Shop", Amount = -5.00m, Date = new DateOnly(2024, 1, 10) },
-            new() { TransactionGuid = "txn-2", Description = "Gas Station", Amount = -60.00m, Date = new DateOnly(2024, 1, 15) },
-            new() { TransactionGuid = "txn-3", Description = "Grocery Store", Amount = -120.00m, Date = new DateOnly(2024, 1, 20) },
+            new() { TransactionGuid = "txn-1", Description = "Coffee Shop", Amount = -5.00m, Date = new DateOnly(2024, 1, 10), Account = SampleAccount },
+            new() { TransactionGuid = "txn-2", Description = "Gas Station", Amount = -60.00m, Date = new DateOnly(2024, 1, 15), Account = SampleAccount },
+            new() { TransactionGuid = "txn-3", Description = "Grocery Store", Amount = -120.00m, Date = new DateOnly(2024, 1, 20), Account = SampleAccount },
         ];
 
         public static readonly Tag SampleTag = new("food", null);
@@ -194,7 +197,7 @@ public class TaggerWindowViewModelTests
     [Fact]
     public void TaggedTransactionIsNotDirtyInitially()
     {
-        var transaction = new TaggedTransaction();
+        var transaction = new TaggedTransaction { Account = Fixture.SampleAccount };
 
         transaction.IsDirty.Should().BeFalse();
     }
@@ -202,7 +205,7 @@ public class TaggerWindowViewModelTests
     [Fact]
     public void TaggedTransactionBecomesDirtyWhenTagAdded()
     {
-        var transaction = new TaggedTransaction();
+        var transaction = new TaggedTransaction { Account = Fixture.SampleAccount };
 
         transaction.Tags.Add(Fixture.SampleTag);
 
@@ -212,7 +215,7 @@ public class TaggerWindowViewModelTests
     [Fact]
     public void TaggedTransactionBecomesDirtyWhenTagRemoved()
     {
-        var transaction = new TaggedTransaction();
+        var transaction = new TaggedTransaction { Account = Fixture.SampleAccount };
         transaction.Tags.Add(Fixture.SampleTag);
         transaction.IsDirty = false;
 
