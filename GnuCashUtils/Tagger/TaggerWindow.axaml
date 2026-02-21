@@ -11,21 +11,60 @@
         <vm:TaggerWindowViewModel />
     </Design.DataContext>
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
-            <TextBox Text="{Binding SearchText}" />
+        <StackPanel
+            DockPanel.Dock="Top" 
+            Margin="0 0 0 8"
+            Orientation="Horizontal"
+            Spacing="8">
+            <TextBox
+                Text="{Binding SearchText}"
+                />
             <!-- TODO: binding converter from DateTimeOffset to DateOnly -->
             <DatePicker SelectedDate="{Binding StartDate}" />
             <DatePicker SelectedDate="{Binding EndDate}" />
         </StackPanel>
 
-        <StackPanel DockPanel.Dock="Right" Orientation="Vertical" Spacing="8" Width="200">
-            <AutoCompleteBox ItemsSource="{Binding Tags}" />
-            <ListBox ItemsSource="{Binding SelectedTags}" />
-            <Button Content="Apply" Command="{Binding ApplyCommand}" />
-            <Button Content="Save" Command="{Binding SaveCommand}" />
-        </StackPanel>
+        <Border
+            DockPanel.Dock="Right"
+            Padding="9"
+            BorderBrush="Gray"
+            BorderThickness="1">
+            
+            <Grid Width="200" RowDefinitions="Auto * Auto" ColumnDefinitions="* *">
+                <AutoCompleteBox
+                    x:Name="TagBox"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    ItemsSource="{Binding Tags}"
+                    MinimumPrefixLength="1"
+                    Margin="0 0 0 8"
+                    IsTextCompletionEnabled="True" />
 
-        <DataGrid ItemsSource="{Binding Transactions}">
+                <ListBox
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Margin="0 0 0 8"
+                    MinHeight="100"
+                    ItemsSource="{Binding SelectedTags}" />
+                <Button
+                    Grid.Row="2"
+                    Grid.Column="0" 
+                    Content="Apply"
+                    Command="{Binding ApplyCommand}"
+                    HorizontalAlignment="Center" />
+                <Button
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Content="Save"
+                    Command="{Binding SaveCommand}"
+                    HorizontalAlignment="Center" />
+                
+            </Grid>
+        </Border>
+
+        <DataGrid ItemsSource="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date" Binding="{Binding Date}" IsReadOnly="True" />
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True" />

@@ -118,18 +118,17 @@ public class TaggerWindowViewModelTests
     }
 
     [Fact]
-    public async Task ApplyCommandSetsSelectedTagsOnTransactions()
+    public async Task ApplyCommandSetsSelectedTagsOnSelectedTransaction()
     {
         var vm = _fixture.BuildSubject();
         await AdvancePastThrottle();
 
+        vm.SelectedTransaction = vm.Transactions[0];
         vm.SelectedTags.Add(Fixture.SampleTag);
-        var targets = vm.Transactions.Take(2).ToList();
 
-        await vm.ApplyCommand.Execute(targets).ToTask();
+        await vm.ApplyCommand.Execute().ToTask();
 
-        targets[0].Tags.Should().ContainSingle(t => t == Fixture.SampleTag);
-        targets[1].Tags.Should().ContainSingle(t => t == Fixture.SampleTag);
+        vm.Transactions[0].Tags.Should().ContainSingle(t => t == Fixture.SampleTag);
     }
 
     [Fact]
@@ -141,14 +140,15 @@ public class TaggerWindowViewModelTests
         var target = vm.Transactions[0];
         target.Tags.Add(Fixture.AnotherTag);
 
+        vm.SelectedTransaction = target;
         vm.SelectedTags.Add(Fixture.SampleTag);
-        await vm.ApplyCommand.Execute([target]).ToTask();
+        await vm.ApplyCommand.Execute().ToTask();
 
         target.Tags.Should().ContainSingle(t => t == Fixture.SampleTag);
     }
 
     [Fact]
-    public async Task ApplyCommandMarksTransactionsDirty()
+    public async Task ApplyCommandMarksTransactionDirty()
     {
         var vm = _fixture.BuildSubject();
         await AdvancePastThrottle();
@@ -156,8 +156,9 @@ public class TaggerWindowViewModelTests
         var target = vm.Transactions[0];
         target.IsDirty = false;
 
+        vm.SelectedTransaction = target;
         vm.SelectedTags.Add(Fixture.SampleTag);
-        await vm.ApplyCommand.Execute([target]).ToTask();
+        await vm.ApplyCommand.Execute().ToTask();
 
         target.IsDirty.Should().BeTrue();
     }

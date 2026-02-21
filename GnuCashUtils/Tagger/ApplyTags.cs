@@ -14,6 +14,7 @@ public class ApplyTagsHandler(IDbConnectionFactory db) : IRequestHandler<ApplyTa
     public Task Handle(ApplyTags request, CancellationToken cancellationToken)
     {
         using var conn = db.GetConnection();
+        conn.Open();
         using var transaction = conn.BeginTransaction();
 
         foreach (var taggedTransaction in request.Transactions)

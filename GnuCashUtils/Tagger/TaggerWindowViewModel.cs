@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using GnuCashUtils.Core;
@@ -27,9 +28,12 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
     [Reactive] public partial string SearchText { get; set; }
     [Reactive] public partial DateOnly? StartDate { get; set; }
     [Reactive] public partial DateOnly? EndDate { get; set; }
+    [Reactive] public partial TaggedTransaction? SelectedTransaction { get; set; }
 
     public ObservableCollection<Tag> SelectedTags { get; } = [];
-    public ReactiveCommand<IEnumerable<TaggedTransaction>, Unit> ApplyCommand { get; }
+    public ReactiveCommand<Tag, Unit> AddTagCommand { get; }
+    public ReactiveCommand<TaggedTransaction?, Unit> SelectTransactionCommand { get; }
+    public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
     public TaggerWindowViewModel(IMediator mediator, IScheduler? scheduler = null)
@@ -64,24 +68,39 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
         });
 
 
-        ApplyCommand = ReactiveCommand.Create<IEnumerable<TaggedTransaction>, Unit>(ApplyCommandImpl);
+        AddTagCommand = ReactiveCommand.Create<Tag, Unit>(tag =>
+        {
+            SelectedTags.Add(tag);
+            return Unit.Default;
+        });
+
+        SelectTransactionCommand = ReactiveCommand.Create<TaggedTransaction?, Unit>(SelectTransactionImpl);
+        this.WhenAnyValue(x => x.SelectedTransaction).InvokeCommand(SelectTransactionCommand);
+
+        ApplyCommand = ReactiveCommand.Create(ApplyCommandImpl);
         SaveCommand = ReactiveCommand.CreateFromTask(SaveCommandImpl);
     }
 
-    private Unit ApplyCommandImpl(IEnumerable<TaggedTransaction> transactions)
+    private Unit SelectTransactionImpl(TaggedTransaction? transaction)
     {
-        foreach (var transaction in transactions)
-        {
-            transaction.Tags.Clear();
-            transaction.Tags.AddRange(SelectedTags);
-        }
-
+        SelectedTags.Clear();
+        if (transaction != null)
+            SelectedTags.AddRange(transaction.Tags);
         return Unit.Default;
     }
 
-    private async Task SaveCommandImpl()
+    private void ApplyCommandImpl()
     {
-        await _mediator.Send(new ApplyTags(Transactions.Where(t => t.IsDirty)));
+        if (SelectedTransaction != null)
+        {
+            SelectedTransaction.Tags.Clear();
+            SelectedTransaction.Tags.AddRange(SelectedTags);
+        }
+    }
+
+    private async Task SaveCommandImpl(CancellationToken cancellationToken)
+    {
+        await Task.Run(() => _mediator.Send(new ApplyTags(Transactions.Where(t => t.IsDirty)), cancellationToken), cancellationToken);
     }
 
     #region mode
@@ -90,6 +109,8 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
     {
         _mediator = null!;
         _searchText = "";
+        AddTagCommand = null!;
+        SelectTransactionCommand = null!;
         ApplyCommand = null!;
         SaveCommand = null!;
 
