@@ -54,4 +54,21 @@ public class TagTests
         var tag = new Tag(name, value);
         Tag.Parse(tag.Encode()).Single().Should().Be(tag);
     }
+
+    [Theory]
+    [MemberData(nameof(ApplyTagsData))]
+    public void ApplyTags(string? existingNotes, Tag[] tags, string expected)
+    {
+        Tag.ApplyTags(existingNotes, tags).Should().Be(expected);
+    }
+
+    public static IEnumerable<object?[]> ApplyTagsData() =>
+    [
+        ["grocery run", new[] { new Tag("food") }, "grocery run #[food]"],
+        ["grocery run #[food]", new[] { new Tag("food"), new Tag("budget") }, "grocery run #[food] #[budget]"],
+        ["grocery run #[old]", new[] { new Tag("food") }, "grocery run #[food]"],  // replaces existing tags
+        [null, new[] { new Tag("food") }, "#[food]"],                              // null notes
+        ["memo #[deleteme]", Array.Empty<Tag>(), "memo"],                                      // no tags clears encoded portion
+        [null, Array.Empty<Tag>(), ""],                                            // null notes, no tags
+    ];
 }

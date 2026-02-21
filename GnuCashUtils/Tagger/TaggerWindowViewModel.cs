@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using GnuCashUtils.Core;
@@ -58,6 +57,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(tags =>
                 {
+                    _log.Information("Found {Count} tags", tags.Count);
                     Tags.Clear();
                     Tags.AddRange(tags.OrderBy(t => t.Name).ThenBy(t => t.Value, StringComparer.Ordinal));
                 });
@@ -140,15 +140,5 @@ public partial class TaggedTransaction : ViewModelBase
     public TaggedTransaction()
     {
         Tags.CollectionChanged += (_, _) => IsDirty = true;
-    }
-
-    /// <summary>
-    /// Regenerates the Memo column with all existing encoded tags removed and adds the new encoded tags from the Tags list
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    public string ComputeNotes()
-    {
-        throw new NotImplementedException();
     }
 }

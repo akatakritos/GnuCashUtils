@@ -18,8 +18,9 @@
             <DatePicker SelectedDate="{Binding EndDate}" />
         </StackPanel>
 
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8">
-            <AutoCompleteBox />
+        <StackPanel DockPanel.Dock="Right" Orientation="Vertical" Spacing="8" Width="200">
+            <AutoCompleteBox ItemsSource="{Binding Tags}" />
+            <ListBox ItemsSource="{Binding SelectedTags}" />
             <Button Content="Apply" Command="{Binding ApplyCommand}" />
             <Button Content="Save" Command="{Binding SaveCommand}" />
         </StackPanel>

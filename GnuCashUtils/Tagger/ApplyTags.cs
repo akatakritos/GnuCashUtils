@@ -18,7 +18,7 @@ public class ApplyTagsHandler(IDbConnectionFactory db) : IRequestHandler<ApplyTa
 
         foreach (var taggedTransaction in request.Transactions)
         {
-            var notes = taggedTransaction.ComputeNotes();
+            var notes = Tag.ApplyTags(taggedTransaction.Notes, taggedTransaction.Tags);
 
             if (taggedTransaction.SlotId.HasValue)
             {

@@ -17,7 +17,7 @@ public class FetchTagsHandler(IDbConnectionFactory db) : IRequestHandler<FetchTa
         using var connection = db.GetConnection();
         var set = new HashSet<Tag>();
         using var reader =
-            connection.ExecuteReader("select string_val from slots where name  = 'notes' and string_val like '%#['");
+            connection.ExecuteReader("select string_val from slots where name  = 'notes' and string_val like '%#[%'");
         while (reader.Read())
         {
             var value = reader["string_val"] as string;
