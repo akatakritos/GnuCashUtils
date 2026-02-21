@@ -262,4 +262,5 @@ public class TaggerWindowViewModelTests
 
         transaction.IsDirty.Should().BeTrue();
     }
+
 }

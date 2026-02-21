@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -16,6 +15,14 @@ using Serilog;
 using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.Tagger;
+
+// TODO: ability to add brand new tag to list
+// TODO: shouldn't have to type "#[" to get auto-complete
+// TODO: search should include tag
+// TODO: what to do if there are unsaved transactions and a new search is made?
+// TODO: Support multiple selected transactions. Tags in the listbox need three states: ignore, remove, add. When selecting one or more rows, merge all tags into the listbox, but have them all at ignore. User can mark one to remove, an icon indicates its being removed. User can add a new one, icon indicates its being added. A tag that was in one transaction (default ignored) can be marked to be applied to all (added)
+// TODO: auto-complete dropdown still not disappearing on selection
+// TODO: make it prettier
 
 public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewModel
 {
@@ -118,24 +125,28 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
         ApplyCommand = null!;
         SaveCommand = null!;
 
-        Transactions =
-        [
-            new()
-            {
-                TransactionGuid = "txn-1", Description = "Coffee Shop", Amount = -5.00m,
-                Date = new DateOnly(2024, 1, 10), Account = new Account() { FullName = "Expenses:Coffee" }
-            },
-            new()
-            {
-                TransactionGuid = "txn-2", Description = "Gas Station", Amount = -60.00m,
-                Date = new DateOnly(2024, 1, 15), Account = new() { FullName = "Expenses:Gas" },
-            },
-            new()
-            {
-                TransactionGuid = "txn-3", Description = "Grocery Store", Amount = -120.00m,
-                Date = new DateOnly(2024, 1, 20), Account = new() { FullName = "Expenses:Groceries" }
-            },
-        ];
+        var txn1 = new TaggedTransaction
+        {
+            TransactionGuid = "txn-1", Description = "Coffee Shop", Amount = -5.00m,
+            Date = new DateOnly(2024, 1, 10), Account = new Account() { FullName = "Expenses:Coffee" }
+        };
+        txn1.Tags.Add(new Tag("food"));
+        txn1.Tags.Add(new Tag("vacation", "disney-2024"));
+
+        var txn2 = new TaggedTransaction
+        {
+            TransactionGuid = "txn-2", Description = "Gas Station", Amount = -60.00m,
+            Date = new DateOnly(2024, 1, 15), Account = new() { FullName = "Expenses:Gas" },
+        };
+        txn2.Tags.Add(new Tag("travel"));
+
+        var txn3 = new TaggedTransaction
+        {
+            TransactionGuid = "txn-3", Description = "Grocery Store", Amount = -120.00m,
+            Date = new DateOnly(2024, 1, 20), Account = new() { FullName = "Expenses:Groceries" }
+        };
+
+        Transactions = [txn1, txn2, txn3];
 
         Tags =
         [
