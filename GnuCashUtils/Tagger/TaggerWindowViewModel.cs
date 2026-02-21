@@ -129,16 +129,6 @@ public partial class TaggedTransaction : ViewModelBase
     }
 }
 
-public record Tag(string Name, string? Value = null)
-{
-    public override string ToString() => string.IsNullOrEmpty(Value) ? $"Tag {Name}" : $"Tag {Name}={Value}";
-
-    public static IEnumerable<Tag> Parse(string text)
-    {
-        throw new NotImplementedException();
-    }
-}
-
 public record SearchTransactions(string SearchText, DateOnly? StartDate, DateOnly? EndDate)
     : IRequest<List<TaggedTransaction>>;
 
