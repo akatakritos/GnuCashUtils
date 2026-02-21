@@ -19,9 +19,8 @@
             <TextBox
                 Text="{Binding SearchText}"
                 />
-            <!-- TODO: binding converter from DateTimeOffset to DateOnly -->
-            <DatePicker SelectedDate="{Binding StartDate}" />
-            <DatePicker SelectedDate="{Binding EndDate}" />
+            <DatePicker SelectedDate="{Binding StartDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}" />
+            <DatePicker SelectedDate="{Binding EndDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}" />
         </StackPanel>
 
         <Border
