@@ -196,6 +196,27 @@ public class TaggerWindowViewModelTests
     }
 
     [Fact]
+    public async Task AddTagCommandAddsTagToSelectedTags()
+    {
+        var vm = _fixture.BuildSubject();
+
+        await vm.AddTagCommand.Execute(Fixture.SampleTag).ToTask();
+
+        vm.SelectedTags.Should().ContainSingle(t => t == Fixture.SampleTag);
+    }
+
+    [Fact]
+    public async Task AddTagCommandIgnoresDuplicates()
+    {
+        var vm = _fixture.BuildSubject();
+
+        await vm.AddTagCommand.Execute(Fixture.SampleTag).ToTask();
+        await vm.AddTagCommand.Execute(Fixture.SampleTag).ToTask();
+
+        vm.SelectedTags.Should().ContainSingle(t => t == Fixture.SampleTag);
+    }
+
+    [Fact]
     public void TaggedTransactionIsNotDirtyInitially()
     {
         var transaction = new TaggedTransaction { Account = Fixture.SampleAccount };

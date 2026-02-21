@@ -70,7 +70,8 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
         AddTagCommand = ReactiveCommand.Create<Tag, Unit>(tag =>
         {
-            SelectedTags.Add(tag);
+            if (!SelectedTags.Contains(tag))
+                SelectedTags.Add(tag);
             return Unit.Default;
         });
 
