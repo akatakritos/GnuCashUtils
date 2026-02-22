@@ -31,6 +31,28 @@ public partial record Tag(string Name, string? Value = null)
         return $"{stripped} {encoded}";
     }
 
+    /// <summary>
+    /// Parses a user-typed string into a Tag. Accepts "#[name]", "#[name=value]", "name", or "name=value".
+    /// Returns null if the input is blank or unparseable.
+    /// </summary>
+    public static Tag? FromInput(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return null;
+        input = input.Trim();
+
+        // Already in full #[...] format?
+        var tags = Parse(input).ToList();
+        if (tags.Count == 1) return tags[0];
+
+        // Simple "name" or "name=value"
+        var eqIndex = input.IndexOf('=');
+        if (eqIndex < 0) return new Tag(input);
+
+        var name = input[..eqIndex].Trim();
+        var value = input[(eqIndex + 1)..].Trim();
+        return string.IsNullOrEmpty(name) ? null : new Tag(name, string.IsNullOrEmpty(value) ? null : value);
+    }
+
     [GeneratedRegex(@"#\[([^\]=]+?)(?:=([^\]]+?))?\]")]
     private static partial Regex FindTags();
 }

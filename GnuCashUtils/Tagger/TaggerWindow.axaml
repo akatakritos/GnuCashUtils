@@ -36,9 +36,16 @@
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
                     ItemsSource="{Binding Tags}"
-                    MinimumPrefixLength="1"
+                    MinimumPrefixLength="0"
                     Margin="0 0 0 8"
-                    IsTextCompletionEnabled="True" />
+                    IsTextCompletionEnabled="False"
+                    Watermark="Tag name or name=value…">
+                    <AutoCompleteBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:Tag">
+                            <vm:TagChip ChipTag="{Binding}" HorizontalAlignment="Left"/>
+                        </DataTemplate>
+                    </AutoCompleteBox.ItemTemplate>
+                </AutoCompleteBox>
 
                 <ScrollViewer
                     Grid.Row="1"

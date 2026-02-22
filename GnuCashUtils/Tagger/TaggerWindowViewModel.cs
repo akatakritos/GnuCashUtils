@@ -16,7 +16,6 @@ using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.Tagger;
 
-// TODO: ability to add brand new tag to list
 // TODO: shouldn't have to type "#[" to get auto-complete
 // TODO: search should include tag
 // TODO: what to do if there are unsaved transactions and a new search is made?
@@ -39,6 +38,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
     public ObservableCollection<Tag> SelectedTags { get; } = [];
     public ReactiveCommand<Tag, Unit> AddTagCommand { get; }
+    public ReactiveCommand<Tag, Unit> AddNewTagCommand { get; }
     public ReactiveCommand<TaggedTransaction?, Unit> SelectTransactionCommand { get; }
     public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
@@ -77,6 +77,25 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
         AddTagCommand = ReactiveCommand.Create<Tag, Unit>(tag =>
         {
+            if (!SelectedTags.Contains(tag))
+                SelectedTags.Add(tag);
+            return Unit.Default;
+        });
+
+        AddNewTagCommand = ReactiveCommand.Create<Tag, Unit>(tag =>
+        {
+            if (!Tags.Contains(tag))
+            {
+                var i = 0;
+                while (i < Tags.Count)
+                {
+                    var cmp = string.Compare(Tags[i].Name, tag.Name, StringComparison.Ordinal);
+                    if (cmp > 0 || (cmp == 0 && string.Compare(Tags[i].Value, tag.Value, StringComparison.Ordinal) > 0))
+                        break;
+                    i++;
+                }
+                Tags.Insert(i, tag);
+            }
             if (!SelectedTags.Contains(tag))
                 SelectedTags.Add(tag);
             return Unit.Default;
@@ -121,6 +140,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
         _mediator = null!;
         _searchText = "";
         AddTagCommand = null!;
+        AddNewTagCommand = null!;
         SelectTransactionCommand = null!;
         ApplyCommand = null!;
         SaveCommand = null!;
