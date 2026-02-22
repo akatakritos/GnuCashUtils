@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -7,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
+using DynamicData.Binding;
 using GnuCashUtils.Core;
 using MediatR;
 using ReactiveUI;
@@ -17,7 +19,6 @@ using Unit = System.Reactive.Unit;
 namespace GnuCashUtils.Tagger;
 
 // TODO: search should include tag
-// TODO: what to do if there are unsaved transactions and a new search is made?
 // TODO: Support multiple selected transactions. Tags in the listbox need three states: ignore, remove, add. When selecting one or more rows, merge all tags into the listbox, but have them all at ignore. User can mark one to remove, an icon indicates its being removed. User can add a new one, icon indicates its being added. A tag that was in one transaction (default ignored) can be marked to be applied to all (added)
 // TODO: make it prettier
 
@@ -26,7 +27,6 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
     private static readonly ILogger _log = Log.ForContext<TaggerWindowViewModel>();
 
     private readonly IMediator _mediator;
-    public ObservableCollection<TaggedTransaction> Transactions { get; } = [];
     public ObservableCollection<Tag> Tags { get; } = [];
 
     [Reactive] public partial string SearchText { get; set; }
@@ -40,11 +40,20 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
     public ReactiveCommand<TaggedTransaction?, Unit> SelectTransactionCommand { get; }
     public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+    
+    private SourceCache<TaggedTransaction, string> _transactionsCache = new(x => x.TransactionGuid);
+    private readonly ReadOnlyObservableCollection<TaggedTransaction> _transactions;
+    public ReadOnlyObservableCollection<TaggedTransaction> Transactions => _transactions;
 
     public TaggerWindowViewModel(IMediator mediator, IScheduler? scheduler = null)
     {
         _searchText = "";
         _mediator = mediator;
+        
+        _transactionsCache
+            .Connect()
+            .Bind(out _transactions)
+            .Subscribe();
 
         this.WhenAnyValue(x => x.SearchText, x => x.StartDate, x => x.EndDate)
             .Throttle(TimeSpan.FromMilliseconds(250), scheduler ?? RxApp.TaskpoolScheduler)
@@ -53,12 +62,8 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
             .Select(req => Observable.FromAsync(ct => mediator.Send(req, ct)))
             .Switch()
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(transactions =>
-            {
-                _log.Information("Found {Count} transactions", transactions.Count);
-                Transactions.Clear();
-                Transactions.AddRange(transactions);
-            });
+            .Subscribe(OnTransactionsLoaded);
+
 
         this.WhenActivated((CompositeDisposable d) =>
         {
@@ -104,6 +109,36 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
         ApplyCommand = ReactiveCommand.Create(ApplyCommandImpl);
         SaveCommand = ReactiveCommand.CreateFromTask(SaveCommandImpl);
+    }
+
+    private void OnTransactionsLoaded(List<TaggedTransaction> nextTransactions)
+    {
+        _log.Information("Found {Count} transactions", nextTransactions.Count);
+
+        var cleanTransactions = Transactions.Where(t => !t.IsDirty).Select(t => t.TransactionGuid).ToList();
+
+        var skipCount = 0;
+        var addedCount = 0;
+        
+        _transactionsCache.Edit(updater =>
+        {
+            updater.RemoveKeys(cleanTransactions);
+
+            foreach (var t in nextTransactions)
+            {
+                if (updater.Lookup(t.TransactionGuid).HasValue)
+                {
+                    skipCount++;
+                }
+                else
+                {
+                    updater.AddOrUpdate(t);
+                    addedCount++;
+                }
+            }
+        });
+        
+        _log.Information("Transactions updated: {Clean} clean removed, {Skipped} already loaded, {Added} added", cleanTransactions.Count, skipCount, addedCount);
     }
 
     private Unit SelectTransactionImpl(TaggedTransaction? transaction)
@@ -164,7 +199,15 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
             Date = new DateOnly(2024, 1, 20), Account = new() { FullName = "Expenses:Groceries" }
         };
 
-        Transactions = [txn1, txn2, txn3];
+        _transactionsCache.AddOrUpdate(txn1);
+        _transactionsCache.AddOrUpdate(txn2);
+        _transactionsCache.AddOrUpdate(txn3);
+        
+        _transactionsCache
+                .Connect()
+                .Bind(out _transactions)
+                .Subscribe();
+        
 
         Tags =
         [

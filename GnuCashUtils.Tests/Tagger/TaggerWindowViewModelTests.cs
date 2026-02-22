@@ -263,4 +263,57 @@ public class TaggerWindowViewModelTests
         transaction.IsDirty.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task WhenNewSearchLoads_DirtyTransactionsArePreserved()
+    {
+        var vm = await BuildAndDrainInitial();
+
+        // Mark the first transaction dirty
+        vm.Transactions[0].IsDirty = true;
+
+        // New search returns only txn-2 and txn-3 (txn-1 is gone from results)
+        _fixture.Transactions = [Fixture.MakeSampleTransactions()[1], Fixture.MakeSampleTransactions()[2]];
+        vm.SearchText = "new search";
+        await AdvancePastThrottle();
+
+        vm.Transactions.Should().HaveCount(3);
+        vm.Transactions.Should().Contain(t => t.TransactionGuid == "txn-1" && t.IsDirty);
+    }
+
+    [Fact]
+    public async Task WhenNewSearchLoads_DirtyTransactionIsNotOverwrittenBySearchResult()
+    {
+        var vm = await BuildAndDrainInitial();
+
+        // Add a tag to txn-1 — this marks it dirty and records a change
+        var dirtyTxn = vm.Transactions[0];
+        dirtyTxn.Tags.Add(Fixture.SampleTag);
+
+        // New search returns fresh objects with the same GUIDs (including txn-1 without the tag)
+        _fixture.Transactions = Fixture.MakeSampleTransactions();
+        vm.SearchText = "new search";
+        await AdvancePastThrottle();
+
+        // The dirty in-memory instance must be kept — not replaced by the fresh one
+        vm.Transactions.Single(t => t.TransactionGuid == "txn-1").Should().BeSameAs(dirtyTxn);
+        vm.Transactions.Single(t => t.TransactionGuid == "txn-1").Tags.Should().ContainSingle(t => t == Fixture.SampleTag);
+    }
+
+    [Fact]
+    public async Task WhenNewSearchLoads_CleanTransactionsAreReplaced()
+    {
+        var vm = await BuildAndDrainInitial();
+
+        var originalTxn1 = vm.Transactions[0];
+        // txn-1 stays clean
+
+        // New search returns fresh objects with the same GUIDs
+        _fixture.Transactions = Fixture.MakeSampleTransactions();
+        vm.SearchText = "new search";
+        await AdvancePastThrottle();
+
+        // Clean transaction should be replaced by the new instance from search
+        vm.Transactions.Single(t => t.TransactionGuid == "txn-1").Should().NotBeSameAs(originalTxn1);
+    }
+
 }
