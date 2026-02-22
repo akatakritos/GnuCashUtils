@@ -6,22 +6,28 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="GnuCashUtils.Tagger.TaggerWindow"
         x:DataType="vm:TaggerWindowViewModel"
-        Title="TaggerWindow">
+        Title="TaggerWindow"
+        Padding="8"
+        >
     <Design.DataContext>
         <vm:TaggerWindowViewModel />
     </Design.DataContext>
     <DockPanel>
-        <StackPanel
+        <Grid
             DockPanel.Dock="Top"
             Margin="0 0 0 8"
-            Orientation="Horizontal"
-            Spacing="8">
+            ColumnDefinitions="* Auto Auto">
             <TextBox
+                Grid.Column="0"
                 Text="{Binding SearchText}"
                 />
-            <DatePicker SelectedDate="{Binding StartDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}" />
-            <DatePicker SelectedDate="{Binding EndDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}" />
-        </StackPanel>
+            <DatePicker 
+                Grid.Column="1" 
+                SelectedDate="{Binding StartDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}" />
+            <DatePicker
+                Grid.Column="2"
+                SelectedDate="{Binding EndDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}" />
+        </Grid>
 
         <Border
             DockPanel.Dock="Right"

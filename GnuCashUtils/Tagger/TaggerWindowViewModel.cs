@@ -72,6 +72,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
     public TaggerWindowViewModel(IMediator mediator, IScheduler? scheduler = null)
     {
+        _tags = [];
         _searchText = "";
         _mediator = mediator;
 
@@ -221,6 +222,8 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
         CycleOperationCommand = null!;
         ApplyCommand = null!;
         SaveCommand = null!;
+        _tags = [];
+        _tagsHelper = null!;
 
         var txn1 = new TaggedTransaction
         {
