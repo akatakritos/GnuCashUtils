@@ -27,10 +27,10 @@ public static class Converters
         Color.FromRgb(0x37, 0x47, 0x4F), // blue-grey
     ];
 
-    public static readonly FuncValueConverter<string?, IBrush> TagNameToColor = new(name =>
+    public static readonly FuncValueConverter<Tag?, IBrush> TagToColor = new(tag =>
     {
-        if (string.IsNullOrEmpty(name)) return new SolidColorBrush(Colors.Gray);
-        var hash = name.Aggregate(0, (h, c) => h * 31 + c);
+        if (tag == null) return new SolidColorBrush(Colors.Gray);
+        var hash = tag.Name.Aggregate(0, (h, c) => h * 31 + c);
         return new SolidColorBrush(_tagColors[Math.Abs(hash) % _tagColors.Length]);
     });
 

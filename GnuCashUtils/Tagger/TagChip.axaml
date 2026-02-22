@@ -1,17 +1,27 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:GnuCashUtils.Tagger"
-             x:Name="root"
-             x:Class="GnuCashUtils.Tagger.TagChip">
-    <Border
-        Background="{Binding #root.ChipTag.Name, Converter={x:Static vm:Converters.TagNameToColor}}"
-        CornerRadius="10"
-        Padding="7 2"
-        Margin="2 2">
-        <TextBlock
-            Text="{Binding #root.ChipTag, Converter={x:Static vm:Converters.TagToDisplayText}}"
-            Foreground="White"
-            FontSize="11"
-            VerticalAlignment="Center" />
-    </Border>
-</UserControl>
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:GnuCashUtils.Tagger">
+    <Design.PreviewWith>
+        <StackPanel Margin="8">
+            <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTag}" HorizontalAlignment="Center" />
+            <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTagWithValues}" HorizontalAlignment="Center" />
+        </StackPanel>
+    </Design.PreviewWith>
+    <ControlTheme x:Key="{x:Type vm:TagChip}" TargetType="vm:TagChip">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Background="{TemplateBinding ChipTag, Converter={x:Static vm:Converters.TagToColor}}"
+                    CornerRadius="10"
+                    Padding="7 2"
+                    Margin="2 2">
+                    <TextBlock
+                        Text="{TemplateBinding ChipTag, Converter={x:Static vm:Converters.TagToDisplayText}}"
+                        Foreground="White"
+                        FontSize="11"
+                        VerticalAlignment="Center" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

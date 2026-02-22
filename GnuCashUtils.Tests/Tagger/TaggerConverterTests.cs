@@ -30,31 +30,30 @@ public class TaggerConverterTests
         result.Should().Be("");
     }
 
-    // TagNameToColor
+    // TagToColor
 
     [Fact]
-    public void TagNameToColor_SameName_ReturnsSameColor()
+    public void TagToColor_SameTag_ReturnsSameColor()
     {
-        var a = Converters.TagNameToColor.Convert("food", typeof(IBrush), null, CultureInfo.InvariantCulture) as SolidColorBrush;
-        var b = Converters.TagNameToColor.Convert("food", typeof(IBrush), null, CultureInfo.InvariantCulture) as SolidColorBrush;
+        var a = Converters.TagToColor.Convert(new Tag("food"), typeof(IBrush), null, CultureInfo.InvariantCulture) as SolidColorBrush;
+        var b = Converters.TagToColor.Convert(new Tag("food"), typeof(IBrush), null, CultureInfo.InvariantCulture) as SolidColorBrush;
         a.Should().NotBeNull();
         a!.Color.Should().Be(b!.Color);
     }
 
     [Fact]
-    public void TagNameToColor_NullName_ReturnsGray()
+    public void TagToColor_NullTag_ReturnsGray()
     {
-        var result = Converters.TagNameToColor.Convert(null, typeof(IBrush), null, CultureInfo.InvariantCulture) as SolidColorBrush;
+        var result = Converters.TagToColor.Convert(null, typeof(IBrush), null, CultureInfo.InvariantCulture) as SolidColorBrush;
         result.Should().NotBeNull();
         result!.Color.Should().Be(Colors.Gray);
     }
 
     [Fact]
-    public void TagNameToColor_DifferentNames_ReturnsDifferentColors()
+    public void TagToColor_DifferentTags_ReturnsDifferentColors()
     {
-        // Confirm the palette produces distinct colors across varied names.
         var colors = new[] { "food", "travel", "vacation", "work", "health", "home", "auto", "misc" }
-            .Select(n => (Converters.TagNameToColor.Convert(n, typeof(IBrush), null, CultureInfo.InvariantCulture) as SolidColorBrush)!.Color)
+            .Select(n => (Converters.TagToColor.Convert(new Tag(n), typeof(IBrush), null, CultureInfo.InvariantCulture) as SolidColorBrush)!.Color)
             .Distinct()
             .Count();
         colors.Should().BeGreaterThan(1);
