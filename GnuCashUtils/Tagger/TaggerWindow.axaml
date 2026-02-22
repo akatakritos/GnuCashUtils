@@ -40,13 +40,24 @@
                     Margin="0 0 0 8"
                     IsTextCompletionEnabled="True" />
 
-                <ListBox
+                <ScrollViewer
                     Grid.Row="1"
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
-                    Margin="0 0 0 8"
-                    MinHeight="100"
-                    ItemsSource="{Binding SelectedTags}" />
+                    Margin="0 0 0 8">
+                    <ItemsControl ItemsSource="{Binding SelectedTags}" MinHeight="100">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:Tag">
+                                <vm:TagChip ChipTag="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
                 <Button
                     Grid.Row="2"
                     Grid.Column="0" 
@@ -85,17 +96,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:Tag">
-                                        <Border
-                                            Background="{Binding Name, Converter={x:Static vm:Converters.TagNameToColor}}"
-                                            CornerRadius="10"
-                                            Padding="7 2"
-                                            Margin="2 2">
-                                            <TextBlock
-                                                Text="{Binding Converter={x:Static vm:Converters.TagToDisplayText}}"
-                                                Foreground="White"
-                                                FontSize="11"
-                                                VerticalAlignment="Center" />
-                                        </Border>
+                                        <vm:TagChip ChipTag="{Binding }" />
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

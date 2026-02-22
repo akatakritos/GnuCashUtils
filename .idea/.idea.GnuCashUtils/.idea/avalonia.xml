@@ -7,6 +7,7 @@
         <entry key="GnuCashUtils/BulkEdit/BulkEditWindow.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
         <entry key="GnuCashUtils/Categorization/CategorizationWindow.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
         <entry key="GnuCashUtils/Home/MainWindow.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
+        <entry key="GnuCashUtils/Tagger/TagChip.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
         <entry key="GnuCashUtils/Tagger/TaggerWindow.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
         <entry key="GnuCashUtils/Views/BulkEditWindow.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
         <entry key="GnuCashUtils/Views/MainWindow.axaml" value="GnuCashUtils/GnuCashUtils.csproj" />
