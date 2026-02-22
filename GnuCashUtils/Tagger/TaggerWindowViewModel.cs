@@ -19,29 +19,53 @@ using Unit = System.Reactive.Unit;
 namespace GnuCashUtils.Tagger;
 
 // TODO: search should include tag
-// TODO: Support multiple selected transactions. Tags in the listbox need three states: ignore, remove, add. When selecting one or more rows, merge all tags into the listbox, but have them all at ignore. User can mark one to remove, an icon indicates its being removed. User can add a new one, icon indicates its being added. A tag that was in one transaction (default ignored) can be marked to be applied to all (added)
 // TODO: make it prettier
 
 public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewModel
 {
     private static readonly ILogger _log = Log.ForContext<TaggerWindowViewModel>();
-
     private readonly IMediator _mediator;
+
     public ObservableCollection<Tag> Tags { get; } = [];
 
     [Reactive] public partial string SearchText { get; set; }
     [Reactive] public partial DateOnly? StartDate { get; set; }
     [Reactive] public partial DateOnly? EndDate { get; set; }
-    [Reactive] public partial TaggedTransaction? SelectedTransaction { get; set; }
 
-    public ObservableCollection<Tag> SelectedTags { get; } = [];
+    public ObservableCollection<TaggedTransaction> SelectedTransactions { get; } = [];
+
+    /// <summary>
+    /// A list of operations that are pending to be applied to the selected transactions.
+    /// </summary>
+    public ObservableCollection<TagOperation> PendingOperations { get; } = [];
+
+    /// <summary>
+    /// Adds a tag selected from the autocomplete into the pending operations as Add.
+    /// If an operation already exists for that tag, its operation is set to Add.
+    /// </summary>
     public ReactiveCommand<Tag, Unit> AddTagCommand { get; }
+
+    /// <summary>
+    /// Adds a brand new tag from the autocomplete into the list of tags.
+    /// </summary>
     public ReactiveCommand<Tag, Unit> AddNewTagCommand { get; }
-    public ReactiveCommand<TaggedTransaction?, Unit> SelectTransactionCommand { get; }
+
+    /// <summary>
+    /// Cycles the operation of a TagOperation: None → Add → Delete → None.
+    /// </summary>
+    public ReactiveCommand<TagOperation, Unit> CycleOperationCommand { get; }
+
+    /// <summary>
+    /// Applies the pending operations to the selected transactions.
+    /// </summary>
     public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
+
+    /// <summary>
+    /// Commits the dirty transactions to the database.
+    /// </summary>
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-    
-    private SourceCache<TaggedTransaction, string> _transactionsCache = new(x => x.TransactionGuid);
+
+    private readonly SourceCache<TaggedTransaction, string> _transactionsCache = new(x => x.TransactionGuid);
     private readonly ReadOnlyObservableCollection<TaggedTransaction> _transactions;
     public ReadOnlyObservableCollection<TaggedTransaction> Transactions => _transactions;
 
@@ -49,7 +73,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
     {
         _searchText = "";
         _mediator = mediator;
-        
+
         _transactionsCache
             .Connect()
             .Bind(out _transactions)
@@ -64,6 +88,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(OnTransactionsLoaded);
 
+        SelectedTransactions.CollectionChanged += (_, _) => RebuildPendingOperations();
 
         this.WhenActivated((CompositeDisposable d) =>
         {
@@ -80,8 +105,11 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
         AddTagCommand = ReactiveCommand.Create<Tag, Unit>(tag =>
         {
-            if (!SelectedTags.Contains(tag))
-                SelectedTags.Add(tag);
+            var existing = PendingOperations.FirstOrDefault(t => t.Tag == tag);
+            if (existing != null)
+                existing.Operation = OperationType.Add;
+            else
+                PendingOperations.Add(new TagOperation { Operation = OperationType.Add, Tag = tag });
             return Unit.Default;
         });
 
@@ -99,16 +127,36 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
                 }
                 Tags.Insert(i, tag);
             }
-            if (!SelectedTags.Contains(tag))
-                SelectedTags.Add(tag);
+            var existingOp = PendingOperations.FirstOrDefault(o => o.Tag == tag);
+            if (existingOp != null)
+                existingOp.Operation = OperationType.Add;
+            else
+                PendingOperations.Add(new TagOperation { Tag = tag, Operation = OperationType.Add });
             return Unit.Default;
         });
 
-        SelectTransactionCommand = ReactiveCommand.Create<TaggedTransaction?, Unit>(SelectTransactionImpl);
-        this.WhenAnyValue(x => x.SelectedTransaction).InvokeCommand(SelectTransactionCommand);
+        CycleOperationCommand = ReactiveCommand.Create<TagOperation, Unit>(op =>
+        {
+            op.Operation = op.Operation switch
+            {
+                OperationType.None => OperationType.Add,
+                OperationType.Add => OperationType.Delete,
+                OperationType.Delete => OperationType.None,
+                _ => OperationType.None
+            };
+            return Unit.Default;
+        });
 
         ApplyCommand = ReactiveCommand.Create(ApplyCommandImpl);
         SaveCommand = ReactiveCommand.CreateFromTask(SaveCommandImpl);
+    }
+
+    private void RebuildPendingOperations()
+    {
+        var allTags = SelectedTransactions.SelectMany(t => t.Tags).Distinct().ToList();
+        PendingOperations.Clear();
+        foreach (var tag in allTags)
+            PendingOperations.Add(new TagOperation { Tag = tag, Operation = OperationType.None });
     }
 
     private void OnTransactionsLoaded(List<TaggedTransaction> nextTransactions)
@@ -119,7 +167,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
         var skipCount = 0;
         var addedCount = 0;
-        
+
         _transactionsCache.Edit(updater =>
         {
             updater.RemoveKeys(cleanTransactions);
@@ -137,25 +185,16 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
                 }
             }
         });
-        
+
         _log.Information("Transactions updated: {Clean} clean removed, {Skipped} already loaded, {Added} added", cleanTransactions.Count, skipCount, addedCount);
     }
 
-    private Unit SelectTransactionImpl(TaggedTransaction? transaction)
-    {
-        SelectedTags.Clear();
-        if (transaction != null)
-            SelectedTags.AddRange(transaction.Tags);
-        return Unit.Default;
-    }
 
     private void ApplyCommandImpl()
     {
-        if (SelectedTransaction != null)
-        {
-            SelectedTransaction.Tags.Clear();
-            SelectedTransaction.Tags.AddRange(SelectedTags);
-        }
+        foreach (var txn in SelectedTransactions)
+            foreach (var op in PendingOperations)
+                op.Apply(txn);
     }
 
     private async Task SaveCommandImpl(CancellationToken cancellationToken)
@@ -174,7 +213,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
         _searchText = "";
         AddTagCommand = null!;
         AddNewTagCommand = null!;
-        SelectTransactionCommand = null!;
+        CycleOperationCommand = null!;
         ApplyCommand = null!;
         SaveCommand = null!;
 
@@ -202,12 +241,12 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
         _transactionsCache.AddOrUpdate(txn1);
         _transactionsCache.AddOrUpdate(txn2);
         _transactionsCache.AddOrUpdate(txn3);
-        
+
         _transactionsCache
                 .Connect()
                 .Bind(out _transactions)
                 .Subscribe();
-        
+
 
         Tags =
         [
@@ -237,5 +276,48 @@ public partial class TaggedTransaction : ViewModelBase
     public TaggedTransaction()
     {
         Tags.CollectionChanged += (_, _) => IsDirty = true;
+    }
+}
+
+public enum OperationType
+{
+    /// <summary>
+    /// Indicates this tag will not be changed in any selected transaction. Transactions that have it already will retain it, and transactions that don't have it will not add it
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// Indicates this tag will be added to all selected transactions.
+    /// </summary>
+    Add,
+
+    /// <summary>
+    /// Indicates this tag will be removed from all selected transactions.
+    /// </summary>
+    Delete
+}
+
+public partial class TagOperation: ViewModelBase
+{
+    /// <summary>
+    /// How this tag will be applied to the selected transactions.
+    /// </summary>
+    [Reactive] public partial OperationType Operation { get; set; }
+
+    public required Tag Tag { get; init; }
+
+    public void Apply(TaggedTransaction transaction)
+    {
+        switch (Operation)
+        {
+            case OperationType.Add:
+                if (!transaction.Tags.Contains(Tag))
+                    transaction.Tags.Add(Tag);
+                break;
+            case OperationType.Delete:
+                transaction.Tags.Remove(Tag);
+                break;
+            // None: no-op
+        }
     }
 }

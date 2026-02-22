@@ -40,6 +40,17 @@ public static class Converters
         { Value: null } => tag.Name,
         _ => $"{tag.Name}={tag.Value}",
     });
+
+    public static readonly FuncValueConverter<OperationType, string> OperationToIcon =
+        new(op => op switch
+        {
+            OperationType.Add => "+",
+            OperationType.Delete => "−",
+            _ => ""
+        });
+
+    public static readonly FuncValueConverter<OperationType, double> OperationToOpacity =
+        new(op => op == OperationType.None ? 0.5 : 1.0);
 }
 
 public class DateOnlyToDateTimeOffsetConverter : IValueConverter

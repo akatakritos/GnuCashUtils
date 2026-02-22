@@ -12,7 +12,7 @@
     </Design.DataContext>
     <DockPanel>
         <StackPanel
-            DockPanel.Dock="Top" 
+            DockPanel.Dock="Top"
             Margin="0 0 0 8"
             Orientation="Horizontal"
             Spacing="8">
@@ -28,7 +28,7 @@
             Padding="9"
             BorderBrush="Gray"
             BorderThickness="1">
-            
+
             <Grid Width="200" RowDefinitions="Auto * Auto" ColumnDefinitions="* *">
                 <AutoCompleteBox
                     x:Name="TagBox"
@@ -52,22 +52,38 @@
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
                     Margin="0 0 0 8">
-                    <ItemsControl ItemsSource="{Binding SelectedTags}" MinHeight="100">
+                    <ItemsControl ItemsSource="{Binding PendingOperations}" MinHeight="100">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:Tag">
-                                <vm:TagChip ChipTag="{Binding}" />
+                            <DataTemplate x:DataType="vm:TagOperation" x:CompileBindings="False">
+                                <Button
+                                    Command="{Binding DataContext.CycleOperationCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="2">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="2"
+                                        Opacity="{Binding Operation, Converter={x:Static vm:Converters.OperationToOpacity}}">
+                                        <vm:TagChip ChipTag="{Binding Tag}" />
+                                        <TextBlock
+                                            Text="{Binding Operation, Converter={x:Static vm:Converters.OperationToIcon}}"
+                                            VerticalAlignment="Center"
+                                            FontWeight="Bold" />
+                                    </StackPanel>
+                                </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
                 <Button
                     Grid.Row="2"
-                    Grid.Column="0" 
+                    Grid.Column="0"
                     Content="Apply"
                     Command="{Binding ApplyCommand}"
                     HorizontalAlignment="Center" />
@@ -77,11 +93,14 @@
                     Content="Save"
                     Command="{Binding SaveCommand}"
                     HorizontalAlignment="Center" />
-                
+
             </Grid>
         </Border>
 
-        <DataGrid ItemsSource="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction}">
+        <DataGrid
+            x:Name="TransactionsGrid"
+            SelectionMode="Extended"
+            ItemsSource="{Binding Transactions}">
             <DataGrid.Styles>
                 <Style Selector="DataGridRow" x:DataType="vm:TaggedTransaction">
                     <Setter Property="FontWeight" Value="{Binding IsDirty, Converter={x:Static vm:Converters.BoolToFontWeight}}" />

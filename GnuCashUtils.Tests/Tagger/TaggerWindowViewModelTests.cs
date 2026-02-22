@@ -45,6 +45,9 @@ public class TaggerWindowViewModelTests
             MockMediator.Send(Arg.Any<ApplyTags>(), Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
 
+            MockMediator.Send(Arg.Any<FetchTags>())
+                .Returns(Task.FromResult(new HashSet<Tag>()));
+
             return new TaggerWindowViewModel(MockMediator, TestScheduler);
         }
     }
@@ -118,13 +121,13 @@ public class TaggerWindowViewModelTests
     }
 
     [Fact]
-    public async Task ApplyCommandSetsSelectedTagsOnSelectedTransaction()
+    public async Task ApplyCommand_AddOperation_AddsTagToTransaction()
     {
         var vm = _fixture.BuildSubject();
         await AdvancePastThrottle();
 
-        vm.SelectedTransaction = vm.Transactions[0];
-        vm.SelectedTags.Add(Fixture.SampleTag);
+        vm.SelectedTransactions.Add(vm.Transactions[0]);
+        vm.PendingOperations.Add(new TagOperation { Tag = Fixture.SampleTag, Operation = OperationType.Add });
 
         await vm.ApplyCommand.Execute().ToTask();
 
@@ -132,7 +135,7 @@ public class TaggerWindowViewModelTests
     }
 
     [Fact]
-    public async Task ApplyCommandReplacesExistingTags()
+    public async Task ApplyCommand_DeleteOperation_RemovesExistingTag()
     {
         var vm = _fixture.BuildSubject();
         await AdvancePastThrottle();
@@ -140,15 +143,15 @@ public class TaggerWindowViewModelTests
         var target = vm.Transactions[0];
         target.Tags.Add(Fixture.AnotherTag);
 
-        vm.SelectedTransaction = target;
-        vm.SelectedTags.Add(Fixture.SampleTag);
+        vm.SelectedTransactions.Add(target);
+        vm.PendingOperations.Add(new TagOperation { Tag = Fixture.AnotherTag, Operation = OperationType.Delete });
         await vm.ApplyCommand.Execute().ToTask();
 
-        target.Tags.Should().ContainSingle(t => t == Fixture.SampleTag);
+        target.Tags.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task ApplyCommandMarksTransactionDirty()
+    public async Task ApplyCommand_AddOperation_MarksTransactionDirty()
     {
         var vm = _fixture.BuildSubject();
         await AdvancePastThrottle();
@@ -156,11 +159,27 @@ public class TaggerWindowViewModelTests
         var target = vm.Transactions[0];
         target.IsDirty = false;
 
-        vm.SelectedTransaction = target;
-        vm.SelectedTags.Add(Fixture.SampleTag);
+        vm.SelectedTransactions.Add(target);
+        vm.PendingOperations.Add(new TagOperation { Tag = Fixture.SampleTag, Operation = OperationType.Add });
         await vm.ApplyCommand.Execute().ToTask();
 
         target.IsDirty.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ApplyCommand_AppliesToAllSelectedTransactions()
+    {
+        var vm = _fixture.BuildSubject();
+        await AdvancePastThrottle();
+
+        vm.SelectedTransactions.Add(vm.Transactions[0]);
+        vm.SelectedTransactions.Add(vm.Transactions[1]);
+        vm.PendingOperations.Add(new TagOperation { Tag = Fixture.SampleTag, Operation = OperationType.Add });
+
+        await vm.ApplyCommand.Execute().ToTask();
+
+        vm.Transactions[0].Tags.Should().Contain(Fixture.SampleTag);
+        vm.Transactions[1].Tags.Should().Contain(Fixture.SampleTag);
     }
 
     [Fact]
@@ -213,13 +232,13 @@ public class TaggerWindowViewModelTests
     }
 
     [Fact]
-    public async Task AddTagCommandAddsTagToSelectedTags()
+    public async Task AddTagCommandAddsTagToPendingOperationsAsAdd()
     {
         var vm = _fixture.BuildSubject();
 
         await vm.AddTagCommand.Execute(Fixture.SampleTag).ToTask();
 
-        vm.SelectedTags.Should().ContainSingle(t => t == Fixture.SampleTag);
+        vm.PendingOperations.Should().ContainSingle(t => t.Tag == Fixture.SampleTag && t.Operation == OperationType.Add);
     }
 
     [Fact]
@@ -230,7 +249,18 @@ public class TaggerWindowViewModelTests
         await vm.AddTagCommand.Execute(Fixture.SampleTag).ToTask();
         await vm.AddTagCommand.Execute(Fixture.SampleTag).ToTask();
 
-        vm.SelectedTags.Should().ContainSingle(t => t == Fixture.SampleTag);
+        vm.PendingOperations.Should().ContainSingle(t => t.Tag == Fixture.SampleTag);
+    }
+
+    [Fact]
+    public async Task AddTagCommand_WhenExistingOpIsNone_SetsToAdd()
+    {
+        var vm = _fixture.BuildSubject();
+        vm.PendingOperations.Add(new TagOperation { Tag = Fixture.SampleTag, Operation = OperationType.None });
+
+        await vm.AddTagCommand.Execute(Fixture.SampleTag).ToTask();
+
+        vm.PendingOperations.Should().ContainSingle(t => t.Tag == Fixture.SampleTag && t.Operation == OperationType.Add);
     }
 
     [Fact]
@@ -316,4 +346,92 @@ public class TaggerWindowViewModelTests
         vm.Transactions.Single(t => t.TransactionGuid == "txn-1").Should().NotBeSameAs(originalTxn1);
     }
 
+    [Fact]
+    public async Task SelectingTransaction_RebuildsPendingOperationsFromTransactionTags()
+    {
+        var vm = _fixture.BuildSubject();
+        await AdvancePastThrottle();
+
+        var target = vm.Transactions[0];
+        target.Tags.Add(Fixture.SampleTag);
+        target.IsDirty = false;
+
+        vm.SelectedTransactions.Add(target);
+
+        vm.PendingOperations.Should().ContainSingle(op => op.Tag == Fixture.SampleTag && op.Operation == OperationType.None);
+    }
+
+    [Fact]
+    public async Task SelectingMultipleTransactions_MergesTagsAsUnion()
+    {
+        var vm = _fixture.BuildSubject();
+        await AdvancePastThrottle();
+
+        var txn1 = vm.Transactions[0];
+        txn1.Tags.Add(Fixture.SampleTag);
+        txn1.IsDirty = false;
+
+        var txn2 = vm.Transactions[1];
+        txn2.Tags.Add(Fixture.AnotherTag);
+        txn2.IsDirty = false;
+
+        vm.SelectedTransactions.Add(txn1);
+        vm.SelectedTransactions.Add(txn2);
+
+        vm.PendingOperations.Should().HaveCount(2);
+        vm.PendingOperations.Should().Contain(op => op.Tag == Fixture.SampleTag && op.Operation == OperationType.None);
+        vm.PendingOperations.Should().Contain(op => op.Tag == Fixture.AnotherTag && op.Operation == OperationType.None);
+    }
+
+    [Fact]
+    public async Task SelectingMultipleTransactions_DeduplicatesSharedTags()
+    {
+        var vm = _fixture.BuildSubject();
+        await AdvancePastThrottle();
+
+        var txn1 = vm.Transactions[0];
+        txn1.Tags.Add(Fixture.SampleTag);
+        txn1.IsDirty = false;
+
+        var txn2 = vm.Transactions[1];
+        txn2.Tags.Add(Fixture.SampleTag);
+        txn2.IsDirty = false;
+
+        vm.SelectedTransactions.Add(txn1);
+        vm.SelectedTransactions.Add(txn2);
+
+        vm.PendingOperations.Should().ContainSingle(op => op.Tag == Fixture.SampleTag);
+    }
+
+    [Fact]
+    public async Task DeselectingAll_ClearsPendingOperations()
+    {
+        var vm = _fixture.BuildSubject();
+        await AdvancePastThrottle();
+
+        var target = vm.Transactions[0];
+        target.Tags.Add(Fixture.SampleTag);
+        target.IsDirty = false;
+
+        vm.SelectedTransactions.Add(target);
+        vm.SelectedTransactions.Clear();
+
+        vm.PendingOperations.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task CycleOperationCommand_CyclesNoneAddDeleteNone()
+    {
+        var vm = _fixture.BuildSubject();
+        var op = new TagOperation { Tag = Fixture.SampleTag, Operation = OperationType.None };
+
+        await vm.CycleOperationCommand.Execute(op).ToTask();
+        op.Operation.Should().Be(OperationType.Add);
+
+        await vm.CycleOperationCommand.Execute(op).ToTask();
+        op.Operation.Should().Be(OperationType.Delete);
+
+        await vm.CycleOperationCommand.Execute(op).ToTask();
+        op.Operation.Should().Be(OperationType.None);
+    }
 }

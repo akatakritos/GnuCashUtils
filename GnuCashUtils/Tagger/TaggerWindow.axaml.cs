@@ -60,5 +60,14 @@ public partial class TaggerWindow : ReactiveWindow<TaggerWindowViewModel>
             tagBox.SelectedItem = null;
             e.Handled = true;
         };
+
+        // Sync DataGrid multi-selection to ViewModel.SelectedTransactions
+        var grid = this.FindControl<DataGrid>("TransactionsGrid")!;
+        grid.SelectionChanged += (_, _) =>
+        {
+            ViewModel!.SelectedTransactions.Clear();
+            foreach (var item in grid.SelectedItems.OfType<TaggedTransaction>())
+                ViewModel!.SelectedTransactions.Add(item);
+        };
     }
 }
