@@ -10,7 +10,7 @@ My personal collection of utilties for working with GnuCash. Written in C# and A
 ## Getting Started
 
 1. Clone this repository
-2. Copy the `GnuCashUtils/config.yml.example` file to ~/.config/GnuCashUtils/config.yml and adjust it to your needs
+2. Copy the `GnuCashUtils/config.yml.example` file to `~/.config/GnuCashUtils/config.yml` and adjust it to your needs
 3. `cd GnuCashUtils`
 4. `dotnet run`
 
@@ -20,7 +20,7 @@ If all goes well, this should open the GUI and let you use the tools.
 
 ### Backup
 
-Copes the sqlite file to a timestamped backup file in the same directory its stored in. You can then choose to open that file in GnuCashUtils
+Copies the sqlite file to a timestamped backup file in the same directory its stored in. You can then choose to open that file in GnuCashUtils
 to test.
 
 ### Bulk Edit Account
@@ -36,14 +36,15 @@ This command only modifies the split that is selected as the source.
 
 ### Categorization
 
-GnuCash does not tokenize descriptions well, and its bayesian categorizer things every variant of AMAZON.COM/XKJG#129iX has
-never been seen before. This tool also does a Bayesian categorization of the description, but does a better job tokenizing and
+GnuCash does not tokenize descriptions well, and its bayesian categorizer thinks every variant of `AMAZON.COM/XKJG#129iX` has
+never been seen before. This results in me having to manually apply the expense account every time.
+
+This tool also does a Bayesian categorization of the description, but does a better job tokenizing and
 removing noise.
 
-Configure the CSV reading in the config.yml file. Right click on a row to set the account, or typeahead in the account column.
+Configure the CSV reading in the `config.yml` file. Right click on a row to set the account, or typeahead in the account column.
 
-It saves a format compatible with easily importing to GnuCash with its own
-categorization applied.
+It saves a CSV file in a format compatible with easily importing to GnuCash with your categorizations applied.
 
 ### Tagger
 
@@ -68,10 +69,10 @@ Each transaction can have multiple tags.
 
 Please open an issue before sending a PR. 
 
-# LLM-based Disclosure
+## LLM-based Disclosure
 
 I've been using this project to experiment with LLM tools for development. It is **not** "vibe coded".
 Each line of production code has been written or reviwed by me and I vouch for it. If the tool doesnt generate the code
-the way I woudld have done it, I refactor, rewrite, or reprompt it. I'd say it was AI-typed rather than AI-written.
+the way I woudld have done it, I refactor, rewrite, or reprompt it. I'd say those parts were AI-typed rather than AI-written.
 
 I expect the same from contributors.
