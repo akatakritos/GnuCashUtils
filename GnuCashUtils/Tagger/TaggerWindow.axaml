@@ -16,6 +16,7 @@
         <Grid
             DockPanel.Dock="Top"
             Margin="0 0 0 8"
+            ColumnSpacing="8"
             ColumnDefinitions="* Auto Auto">
             <TextBox
                 Grid.Column="0"
@@ -23,10 +24,12 @@
                 />
             <DatePicker 
                 Grid.Column="1" 
-                SelectedDate="{Binding StartDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}" />
+                SelectedDate="{Binding StartDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}"
+                VerticalAlignment="Stretch"/>
             <DatePicker
                 Grid.Column="2"
-                SelectedDate="{Binding EndDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}" />
+                SelectedDate="{Binding EndDate, Converter={x:Static vm:Converters.DateOnlyToDateTimeOffset}}"
+                VerticalAlignment="Stretch"/>
         </Grid>
 
         <Border

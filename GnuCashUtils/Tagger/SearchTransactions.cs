@@ -28,7 +28,7 @@ public class SearchTransactionsHandler(IDbConnectionFactory db, IAccountStore ac
         if (request.StartDate.HasValue)
             builder.Where("date(t.post_date) >= date(@startDate)", new { startDate = request.StartDate.Value.ToString("yyyy-MM-dd") });
         if (request.EndDate.HasValue)
-            builder.Where("date(t.post_date) <= date(@endDate)", new { endDate = request.EndDate.Value });
+            builder.Where("date(t.post_date) <= date(@endDate)", new { endDate = request.EndDate.Value.ToString("yyyy-MM-dd") });
 
         var selector = builder.AddTemplate(
             @"select t.guid as transaction_guid, t.post_date, a.guid as account_guid, t.description, s.memo, s.value_num, s.value_denom, slots.id as slot_id, slots.string_val as notes
