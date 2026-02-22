@@ -16,11 +16,9 @@ using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.Tagger;
 
-// TODO: shouldn't have to type "#[" to get auto-complete
 // TODO: search should include tag
 // TODO: what to do if there are unsaved transactions and a new search is made?
 // TODO: Support multiple selected transactions. Tags in the listbox need three states: ignore, remove, add. When selecting one or more rows, merge all tags into the listbox, but have them all at ignore. User can mark one to remove, an icon indicates its being removed. User can add a new one, icon indicates its being added. A tag that was in one transaction (default ignored) can be marked to be applied to all (added)
-// TODO: auto-complete dropdown still not disappearing on selection
 // TODO: make it prettier
 
 public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewModel

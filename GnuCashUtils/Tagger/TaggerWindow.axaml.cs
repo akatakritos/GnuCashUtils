@@ -3,6 +3,7 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 
 namespace GnuCashUtils.Tagger;
 
@@ -30,7 +31,10 @@ public partial class TaggerWindow : ReactiveWindow<TaggerWindowViewModel>
                 ViewModel!.AddNewTagCommand.Execute(tag).Subscribe();
                 tagBox.SelectedItem = null;
                 tagBox.Text = "";
-                tagBox.IsDropDownOpen = false;
+                // MinimumPrefixLength=0 causes the AutoCompleteBox to re-open the dropdown
+                // synchronously when Text is cleared. Post the close to the next dispatcher
+                // tick so it wins after all TextChanged processing completes.
+                Dispatcher.UIThread.Post(() => tagBox.IsDropDownOpen = false);
             }
         };
 
