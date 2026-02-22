@@ -26,7 +26,8 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
     private static readonly ILogger _log = Log.ForContext<TaggerWindowViewModel>();
     private readonly IMediator _mediator;
 
-    public ObservableCollection<Tag> Tags { get; } = [];
+    private SourceCache<Tag, Tag> _tagsCache = new(x => x);
+    [ObservableAsProperty] public partial IReadOnlyCollection<Tag> Tags { get; }
 
     [Reactive] public partial string SearchText { get; set; }
     [Reactive] public partial DateOnly? StartDate { get; set; }
@@ -79,11 +80,16 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
             .Bind(out _transactions)
             .Subscribe();
 
+        _tagsCache
+            .Connect()
+            .ToSortedCollection(x => x.ToString(), SortDirection.Ascending)
+            .ToProperty(this, x => x.Tags, out _tagsHelper);
+
         this.WhenAnyValue(x => x.SearchText, x => x.StartDate, x => x.EndDate)
             .Throttle(TimeSpan.FromMilliseconds(250), scheduler ?? RxApp.TaskpoolScheduler)
             .Select(tuple => new SearchTransactions(tuple.Item1, tuple.Item2, tuple.Item3))
             .DistinctUntilChanged()
-            .Select(req => Observable.FromAsync(ct => mediator.Send(req, ct)))
+            .Select(req => Observable.FromAsync(ct => _mediator.Send(req, ct)))
             .Switch()
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(OnTransactionsLoaded);
@@ -92,63 +98,62 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
         this.WhenActivated((CompositeDisposable d) =>
         {
-            Observable.FromAsync(() => Task.Run(() => mediator.Send(new FetchTags())))
+            Observable.FromAsync(() => Task.Run(() => _mediator.Send(new FetchTags())))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(tags =>
                 {
                     _log.Information("Found {Count} tags", tags.Count);
-                    Tags.Clear();
-                    Tags.AddRange(tags.OrderBy(t => t.Name).ThenBy(t => t.Value, StringComparer.Ordinal));
+                    _tagsCache.Edit(updater =>
+                    {
+                        updater.Clear();
+                        updater.AddOrUpdate(tags);
+                    });
                 });
         });
 
 
-        AddTagCommand = ReactiveCommand.Create<Tag, Unit>(tag =>
-        {
-            var existing = PendingOperations.FirstOrDefault(t => t.Tag == tag);
-            if (existing != null)
-                existing.Operation = OperationType.Add;
-            else
-                PendingOperations.Add(new TagOperation { Operation = OperationType.Add, Tag = tag });
-            return Unit.Default;
-        });
-
-        AddNewTagCommand = ReactiveCommand.Create<Tag, Unit>(tag =>
-        {
-            if (!Tags.Contains(tag))
-            {
-                var i = 0;
-                while (i < Tags.Count)
-                {
-                    var cmp = string.Compare(Tags[i].Name, tag.Name, StringComparison.Ordinal);
-                    if (cmp > 0 || (cmp == 0 && string.Compare(Tags[i].Value, tag.Value, StringComparison.Ordinal) > 0))
-                        break;
-                    i++;
-                }
-                Tags.Insert(i, tag);
-            }
-            var existingOp = PendingOperations.FirstOrDefault(o => o.Tag == tag);
-            if (existingOp != null)
-                existingOp.Operation = OperationType.Add;
-            else
-                PendingOperations.Add(new TagOperation { Tag = tag, Operation = OperationType.Add });
-            return Unit.Default;
-        });
-
-        CycleOperationCommand = ReactiveCommand.Create<TagOperation, Unit>(op =>
-        {
-            op.Operation = op.Operation switch
-            {
-                OperationType.None => OperationType.Add,
-                OperationType.Add => OperationType.Delete,
-                OperationType.Delete => OperationType.None,
-                _ => OperationType.None
-            };
-            return Unit.Default;
-        });
-
+        AddTagCommand = ReactiveCommand.Create<Tag, Unit>(OnAddTag);
+        AddNewTagCommand = ReactiveCommand.Create<Tag, Unit>(OnAddNewTag);
+        CycleOperationCommand = ReactiveCommand.Create<TagOperation, Unit>(OnCycleOperation);
         ApplyCommand = ReactiveCommand.Create(ApplyCommandImpl);
         SaveCommand = ReactiveCommand.CreateFromTask(SaveCommandImpl);
+    }
+
+    private Unit OnAddTag(Tag tag)
+    {
+        var existing = PendingOperations.FirstOrDefault(t => t.Tag == tag);
+        if (existing != null)
+            existing.Operation = OperationType.Add;
+        else
+            PendingOperations.Add(new TagOperation { Operation = OperationType.Add, Tag = tag });
+        return Unit.Default;
+    }
+
+    private Unit OnCycleOperation(TagOperation op)
+    {
+        op.Operation = op.Operation switch
+        {
+            OperationType.None => OperationType.Add,
+            OperationType.Add => OperationType.Delete,
+            OperationType.Delete => OperationType.None,
+            _ => OperationType.None
+        };
+        return Unit.Default;
+    }
+
+    private Unit OnAddNewTag(Tag tag)
+    {
+        if (!_tagsCache.Lookup(tag).HasValue)
+        {
+            _tagsCache.AddOrUpdate(tag);
+        }
+        
+        var existingOp = PendingOperations.FirstOrDefault(o => o.Tag == tag);
+        if (existingOp != null)
+            existingOp.Operation = OperationType.Add;
+        else
+            PendingOperations.Add(new TagOperation { Tag = tag, Operation = OperationType.Add });
+        return Unit.Default;
     }
 
     private void RebuildPendingOperations()
@@ -205,7 +210,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
             t.IsDirty = false;
     }
 
-    #region mode
+    #region design mode
 
     public TaggerWindowViewModel()
     {
@@ -248,16 +253,15 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
                 .Subscribe();
 
 
-        Tags =
-        [
+        _tagsCache.AddOrUpdate([
             new Tag("vacation"),
             new Tag("vacation", "disney-2024"),
             new Tag("vacation", "disney-2025")
-        ];
+        ]);
         
-        PendingOperations.Add(new TagOperation { Tag = Tags[0], Operation = OperationType.None });
-        PendingOperations.Add(new TagOperation { Tag = Tags[1], Operation = OperationType.Add });
-        PendingOperations.Add(new TagOperation { Tag = Tags[2], Operation = OperationType.Delete });
+        PendingOperations.Add(new TagOperation { Tag = new Tag("vacation"), Operation = OperationType.None });
+        PendingOperations.Add(new TagOperation { Tag = new Tag("vacation", "disney-2024"), Operation = OperationType.Add });
+        PendingOperations.Add(new TagOperation { Tag = new Tag("vacation", "disney-2025"), Operation = OperationType.Delete });
     }
 
     #endregion
