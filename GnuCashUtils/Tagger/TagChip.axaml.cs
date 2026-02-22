@@ -18,6 +18,15 @@ public class TagChip : TemplatedControl
         set => SetAndRaise(ChipTagProperty, ref _chipTag, value);
     }
 
+    public static readonly StyledProperty<object?> TrailingContentProperty =
+        AvaloniaProperty.Register<TagChip, object?>(nameof(TrailingContent));
+
+    public object? TrailingContent
+    {
+        get => GetValue(TrailingContentProperty);
+        set => SetValue(TrailingContentProperty, value);
+    }
+
     internal static Tag PreviewTag { get; } = new Tag("vaction");
     internal static Tag PreviewTagWithValues { get; } = new Tag("vacation", "disney");
 }

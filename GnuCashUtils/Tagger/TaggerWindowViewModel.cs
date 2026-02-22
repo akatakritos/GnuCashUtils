@@ -254,6 +254,10 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
             new Tag("vacation", "disney-2024"),
             new Tag("vacation", "disney-2025")
         ];
+        
+        PendingOperations.Add(new TagOperation { Tag = Tags[0], Operation = OperationType.None });
+        PendingOperations.Add(new TagOperation { Tag = Tags[1], Operation = OperationType.Add });
+        PendingOperations.Add(new TagOperation { Tag = Tags[2], Operation = OperationType.Delete });
     }
 
     #endregion

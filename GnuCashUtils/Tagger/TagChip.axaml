@@ -2,9 +2,25 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:vm="clr-namespace:GnuCashUtils.Tagger">
     <Design.PreviewWith>
-        <StackPanel Margin="8">
+        <StackPanel Margin="8" Spacing="4">
             <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTag}" HorizontalAlignment="Center" />
             <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTagWithValues}" HorizontalAlignment="Center" />
+            <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTag}" HorizontalAlignment="Center">
+                <vm:TagChip.TrailingContent>
+                    <Border Background="#2E7D32" BorderBrush="White" BorderThickness="1.5"
+                            CornerRadius="7" Padding="3.5 0">
+                        <TextBlock Text="+" Foreground="White" FontSize="10" FontWeight="Bold" />
+                    </Border>
+                </vm:TagChip.TrailingContent>
+            </vm:TagChip>
+            <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTagWithValues}" HorizontalAlignment="Center">
+                <vm:TagChip.TrailingContent>
+                    <Border Background="#C62828" BorderBrush="White" BorderThickness="1.5"
+                            CornerRadius="7" Padding="3.5 0">
+                        <TextBlock Text="−" Foreground="White" FontSize="10" FontWeight="Bold" />
+                    </Border>
+                </vm:TagChip.TrailingContent>
+            </vm:TagChip>
         </StackPanel>
     </Design.PreviewWith>
     <ControlTheme x:Key="{x:Type vm:TagChip}" TargetType="vm:TagChip">
@@ -13,13 +29,19 @@
                 <Border
                     Background="{TemplateBinding ChipTag, Converter={x:Static vm:Converters.TagToColor}}"
                     CornerRadius="10"
-                    Padding="7 2"
+                    Padding="7 2 5 2"
                     Margin="2 2">
-                    <TextBlock
-                        Text="{TemplateBinding ChipTag, Converter={x:Static vm:Converters.TagToDisplayText}}"
-                        Foreground="White"
-                        FontSize="11"
-                        VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <TextBlock
+                            Text="{TemplateBinding ChipTag, Converter={x:Static vm:Converters.TagToDisplayText}}"
+                            Foreground="White"
+                            FontSize="11"
+                            VerticalAlignment="Center" />
+                        <ContentPresenter
+                            Content="{TemplateBinding TrailingContent}"
+                            IsVisible="{TemplateBinding TrailingContent, Converter={x:Static vm:Converters.IsNotNull}}"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
                 </Border>
             </ControlTemplate>
         </Setter>

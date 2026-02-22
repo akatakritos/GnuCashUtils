@@ -53,11 +53,6 @@
                     Grid.ColumnSpan="2"
                     Margin="0 0 0 8">
                     <ItemsControl ItemsSource="{Binding PendingOperations}" MinHeight="100">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:TagOperation" x:CompileBindings="False">
                                 <Button
@@ -66,16 +61,26 @@
                                     Background="Transparent"
                                     BorderThickness="0"
                                     Padding="2">
-                                    <StackPanel
-                                        Orientation="Horizontal"
-                                        Spacing="2"
+                                    <vm:TagChip
+                                        ChipTag="{Binding Tag}"
                                         Opacity="{Binding Operation, Converter={x:Static vm:Converters.OperationToOpacity}}">
-                                        <vm:TagChip ChipTag="{Binding Tag}" />
-                                        <TextBlock
-                                            Text="{Binding Operation, Converter={x:Static vm:Converters.OperationToIcon}}"
-                                            VerticalAlignment="Center"
-                                            FontWeight="Bold" />
-                                    </StackPanel>
+                                        <vm:TagChip.TrailingContent>
+                                            <Border
+                                                IsVisible="{Binding Operation, Converter={x:Static vm:Converters.OperationIsNotNone}}"
+                                                Background="{Binding Operation, Converter={x:Static vm:Converters.OperationToBadgeBackground}}"
+                                                BorderBrush="White"
+                                                BorderThickness="1.5"
+                                                CornerRadius="7"
+                                                Padding="3.5 0">
+                                                <TextBlock
+                                                    Text="{Binding Operation, Converter={x:Static vm:Converters.OperationToIcon}}"
+                                                    Foreground="White"
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    VerticalAlignment="Center" />
+                                            </Border>
+                                        </vm:TagChip.TrailingContent>
+                                    </vm:TagChip>
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

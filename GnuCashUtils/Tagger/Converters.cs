@@ -41,6 +41,12 @@ public static class Converters
         _ => $"{tag.Name}={tag.Value}",
     });
 
+    public static readonly FuncValueConverter<OperationType, double> OperationToOpacity =
+        new(op => op == OperationType.None ? 0.75 : 1.0);
+
+    public static readonly FuncValueConverter<OperationType, bool> OperationIsNotNone =
+        new(op => op != OperationType.None);
+
     public static readonly FuncValueConverter<OperationType, string> OperationToIcon =
         new(op => op switch
         {
@@ -49,8 +55,15 @@ public static class Converters
             _ => ""
         });
 
-    public static readonly FuncValueConverter<OperationType, double> OperationToOpacity =
-        new(op => op == OperationType.None ? 0.5 : 1.0);
+    // Green #2E7D32 (Material green 800), Red #C62828 (Material red 800).
+    // The badge also gets a white border so it reads clearly against any chip background.
+    public static readonly FuncValueConverter<OperationType, IBrush> OperationToBadgeBackground =
+        new(op => op == OperationType.Delete
+            ? new SolidColorBrush(Color.FromRgb(0xC6, 0x28, 0x28))
+            : new SolidColorBrush(Color.FromRgb(0x2E, 0x7D, 0x32)));
+
+    // Hides the ContentPresenter when TrailingContent was never set (null).
+    public static readonly FuncValueConverter<object?, bool> IsNotNull = new(x => x is not null);
 }
 
 public class DateOnlyToDateTimeOffsetConverter : IValueConverter
