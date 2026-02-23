@@ -81,7 +81,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         this.WhenActivated(d =>
         {
             _accountsHelper.DisposeWith(d);
-            _accountsHelper.DisposeWith(d);
+            _accountTreeHelper.DisposeWith(d);
         });
 
 
