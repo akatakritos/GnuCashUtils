@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -14,7 +15,7 @@ using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.Reporting.TransactionReport;
 
-public partial class TransactionReportViewModel : ViewModelBase, IReport
+public partial class TransactionReportViewModel : ViewModelBase, IReport, IActivatableViewModel
 {
     public string Name { get; } = "Transaction Report";
     public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
@@ -22,21 +23,28 @@ public partial class TransactionReportViewModel : ViewModelBase, IReport
     public ObservableCollection<Tag> Tags { get; } = [];
     [Reactive] public partial Tag? SelectedTag { get; set; }
 
+    private readonly IMediator _mediator = null!;
+
     public TransactionReportViewModel(IMediator mediator)
     {
+        _mediator = mediator;
         var canExecute = this.WhenAnyValue(x => x.SelectedTag)
             .Select(t => t != null);
         ExecuteCommand = ReactiveCommand.CreateFromTask(OnExecute, canExecute);
 
-        Observable.FromAsync(ct => mediator.Send(new FetchTags(), ct))
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(tags => Tags.AddRange(tags.OrderBy(t => t.ToString())));
+        this.WhenActivated(d =>
+        {
+            Observable.FromAsync(ct => _mediator.Send(new FetchTags(), ct))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(tags => Tags.AddRange(tags.OrderBy(t => t.ToString())))
+                .DisposeWith(d);
+
+        });
+
     }
 
-    private Task OnExecute()
-    {
-        throw new System.NotImplementedException();
-    }
+    private Task OnExecute() =>
+        Task.Run(() => _mediator.Send(new ExecuteTransactionReport(SelectedTag)));
 
     #region designer
     public TransactionReportViewModel()
@@ -54,4 +62,6 @@ public partial class TransactionReportViewModel : ViewModelBase, IReport
         SelectedTag = Tags[2];
     }
     #endregion
+
+    public ViewModelActivator Activator { get; } = new();
 }

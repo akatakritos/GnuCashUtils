@@ -22,14 +22,16 @@ public class ConfigService : IConfigService, IDisposable
     public IObservable<AppConfig> Config => _config;
     public AppConfig CurrentConfig => _config.Value;
 
-    private static string DefaultConfigPath()
+    public static string ResolveConfigDir()
     {
         var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-        var configDir = xdgConfigHome is { Length: > 0 }
+        var baseDir = xdgConfigHome is { Length: > 0 }
             ? xdgConfigHome
             : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config");
-        return Path.Combine(configDir, "GnuCashUtils", "config.yml");
+        return Path.Combine(baseDir, "GnuCashUtils");
     }
+
+    private static string DefaultConfigPath() => Path.Combine(ResolveConfigDir(), "config.yml");
 
     public ConfigService(string? configPath = null)
     {

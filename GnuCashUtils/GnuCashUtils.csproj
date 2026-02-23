@@ -36,6 +36,7 @@
         <PackageReference Include="SerilogTimings" Version="3.1.0" />
         <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="15.3.1" />
         <PackageReference Include="Splat.Serilog" Version="15.3.1" />
+        <PackageReference Include="Handlebars.Net" Version="2.1.6" />
         <PackageReference Include="YamlDotNet" Version="16.3.0" />
     </ItemGroup>
 
@@ -61,6 +62,10 @@
     <ItemGroup>
       <None Update="config.yml">
         <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </None>
+      <None Update="Reporting/TransactionReport/TransactionReportTemplate.html.hbs">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <TargetPath>TransactionReportTemplate.html.hbs</TargetPath>
       </None>
     </ItemGroup>
 </Project>
