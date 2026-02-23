@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GnuCashUtils.Reporting"
+             xmlns:tagger="clr-namespace:GnuCashUtils.Tagger"
+             xmlns:transactionReport="clr-namespace:GnuCashUtils.Reporting.TransactionReport"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="200"
+             x:Class="GnuCashUtils.Reporting.TransactionReport.TransactionReport"
+             x:DataType="transactionReport:TransactionReportViewModel"
+             Padding="8">
+    <Design.DataContext>
+        <transactionReport:TransactionReportViewModel />
+    </Design.DataContext>
+
+    <StackPanel Spacing="8">
+        <Grid ColumnDefinitions="Auto *" ColumnSpacing="8">
+            <TextBlock
+                Grid.Column="0"
+                Text="Tag:"
+                VerticalAlignment="Center" />
+            <ComboBox
+                Grid.Column="1"
+                ItemsSource="{Binding Tags}"
+                SelectedItem="{Binding SelectedTag}"
+                HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="tagger:Tag">
+                        <tagger:TagChip ChipTag="{Binding}" HorizontalAlignment="Left" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </Grid>
+    </StackPanel>
+</UserControl>

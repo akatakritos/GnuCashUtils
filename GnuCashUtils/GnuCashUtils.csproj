@@ -52,6 +52,10 @@
         <DependentUpon>TagChip.axaml</DependentUpon>
           <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Reporting\TransactionReport\TransactionReport.axaml.cs">
+        <DependentUpon>TransactionReport.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 
     <ItemGroup>

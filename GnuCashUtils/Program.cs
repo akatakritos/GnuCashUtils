@@ -5,6 +5,8 @@ using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
 using GnuCashUtils.Core.Behaviors;
+using GnuCashUtils.Reporting;
+using GnuCashUtils.Reporting.TransactionReport;
 using GnuCashUtils.Tagger;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +15,7 @@ using Serilog;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Splat;
 using Splat.Serilog;
-using BulkEditWindow = GnuCashUtils.BulkEdit.BulkEditWindow;
+using TransactionReportViewModel = GnuCashUtils.Reporting.TransactionReport.TransactionReportViewModel;
 
 namespace GnuCashUtils;
 
@@ -78,6 +80,11 @@ sealed class Program
         
         services.AddTransient<IViewFor<TaggerWindowViewModel>, TaggerWindow>();
         services.AddTransient<TaggerWindowViewModel>();
+
+        services.AddTransient<ReportingWindowViewModel>();
+        services.AddTransient<IViewFor<ReportingWindowViewModel>, ReportingWindow>();
+        services.AddTransient<IReport, TransactionReportViewModel>();
+        services.AddTransient<IViewFor<TransactionReportViewModel>, TransactionReport>();
         
         services.AddSingleton<IAccountStore, AccountStore>();
         services.AddTransient<IClassifierBuilder, ClassifierBuilder>();

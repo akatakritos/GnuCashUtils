@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GnuCashUtils.Reporting"
+        xmlns:reactiveUi="http://reactiveui.net"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="GnuCashUtils.Reporting.ReportingWindow"
+        Padding="8"
+        x:DataType="vm:ReportingWindowViewModel"
+        Title="ReportingWindow">
+    <Design.DataContext>
+        <vm:ReportingWindowViewModel />
+    </Design.DataContext>
+    <DockPanel>
+        <Grid
+            DockPanel.Dock="Top"
+            ColumnDefinitions="Auto *"
+            ColumnSpacing="8">
+            <TextBlock
+                Grid.Column="0"
+                Text="Report:"
+                VerticalAlignment="Center"/>
+            <ComboBox
+                Grid.Column="1"
+                ItemsSource="{Binding Reports}"
+                DisplayMemberBinding="{Binding Name}"
+                SelectedItem="{Binding SelectedReport}">
+            </ComboBox>
+        </Grid>
+
+        <Grid
+            DockPanel.Dock="Bottom"
+            ColumnDefinitions="*">
+            <Button
+                Grid.Column="0"
+                Command="{Binding ExecuteSelectedReportCommand}"
+                Content="Run Report" />
+        </Grid>
+        
+        <Panel>
+            <TextBlock
+                Text="No report selected"
+                IsVisible="{Binding SelectedReport, Converter={x:Static ObjectConverters.IsNull}}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <reactiveUi:ViewModelViewHost
+                ViewModel="{Binding SelectedReport}"
+                IsVisible="{Binding SelectedReport, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </Panel>
+    </DockPanel>
+</Window>

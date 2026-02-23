@@ -8,6 +8,7 @@ using Avalonia.ReactiveUI;
 using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
+using GnuCashUtils.Reporting;
 using GnuCashUtils.Tagger;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -24,6 +25,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BulkEditAccountCommand { get; }
     public ReactiveCommand<Unit, Unit> CategorizationCommand { get; }
     public ReactiveCommand<Unit, Unit> TaggerCommand { get; }
+    public ReactiveCommand<Unit, Unit> ReportingCommand { get; }
     public ReactiveCommand<Unit, Unit> BackupCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenFileCommand { get; }
     [Reactive] public partial string GnuCashFile { get; set; }
@@ -88,6 +90,20 @@ public partial class MainWindowViewModel : ViewModelBase
             window.Show();
             return Unit.Default;
 
+        });
+
+        ReportingCommand = ReactiveCommand.Create(() =>
+        {
+            var viewLocator = Locator.Current.GetRequiredService<IViewLocator>();
+            var viewModel = Locator.Current.GetRequiredService<ReportingWindowViewModel>();
+            var view = viewLocator.ResolveView(viewModel);
+
+            if (view is not ReactiveWindow<ReportingWindowViewModel> window)
+                throw new Exception("ViewModel does not have associated Window");
+
+            window.ViewModel = viewModel;
+            window.Show();
+            return Unit.Default;
         });
 
         BackupCommand = ReactiveCommand.CreateRunInBackground(() =>
