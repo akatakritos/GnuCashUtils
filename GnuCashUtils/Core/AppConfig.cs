@@ -15,11 +15,21 @@ public class BankConfig
     public int Skip { get; set; }
     public string Headers { get; set; } = "";
     public string Account { get; set; } = "";
-    public AccountType Type { get; set; }
+    public SignConvention SignConvention { get; set; }
 }
 
-public enum AccountType
+/// <summary>
+/// Indicates how to understand transaction amounts in the context of the bank account
+/// </summary>
+public enum SignConvention
 {
+    /// <summary>
+    /// This bank's CSV export treats positive numbers as debits
+    /// </summary>
     Debit,
+    
+    /// <summary>
+    /// This bank's CSV export treats positive numbers as credits
+    /// </summary>
     Credit
 }

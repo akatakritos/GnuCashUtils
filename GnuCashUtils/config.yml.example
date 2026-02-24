@@ -10,12 +10,14 @@ banks:
     # this means the csv is in Date,(ignored),Description,Amount,(ignored) columns. The date can be parsed using the provided C# format string
     headers: "{date:MM/dd/yyyy},_,{description},{amount},_"
     account: "Liabilities:Discover"
-    # credit or debit normal
-    type: "credit"
+    # This tells how to intperpret positive vs negative amounts in the CSV. "credit" means any positive value in the CSV is the credit
+    # side of the imported transaction. This results in needing to import to GnuCash using "Amount (negated)". "debit" means any positive value
+    # is the debit side of the transaction, and would be imported to GnuCash simply as "Amount".
+    sign_convention: "credit"
 
   - name: Bank of America
     match: "stmt-\\d+\\.csv$"
     skip: 7
     headers: "{date:MM/dd/yyyy},{description},{amount},_"
     account: "Assets:Bank of America"
-    type: "debit"
+    sign_convention: "debit"

@@ -128,7 +128,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
         var ext = Path.GetExtension(CsvFilePath);
         var outputPath = Path.Combine(dir, $"{nameWithoutExt}-categorized{ext}");
 
-        var amountHeader = _currentBankConfig.Type == AccountType.Credit ? "amount_negated" : "amount";
+        var amountHeader = _currentBankConfig.SignConvention == SignConvention.Credit ? "amount_negated" : "amount";
 
         var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
         {

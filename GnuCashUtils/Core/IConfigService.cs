@@ -65,7 +65,7 @@ public class ConfigService : IConfigService, IDisposable
 
         var yaml = File.ReadAllText(path);
         var deserializer = new DeserializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
             .Build();
         return deserializer.Deserialize<AppConfig>(yaml);
     }
