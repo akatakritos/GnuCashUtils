@@ -47,7 +47,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ContentArea.Content = cached.View;
     }
 
-    private async void Button_OnClick(object? sender, RoutedEventArgs e)
+    private async void SaveButton_Click(object? sender, RoutedEventArgs e)
     {
         var result = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions());
         if (result.Count > 0)

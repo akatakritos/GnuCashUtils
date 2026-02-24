@@ -21,19 +21,30 @@
         <Border Grid.Row="0"
                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                 Padding="8">
-            <DockPanel>
-                <controls:IconButton DockPanel.Dock="Right" Margin="8 0 0 0"
-                                    LeadingIcon="{x:Static local:FontAwesomeIcons.FolderOpen}"
-                                    Text="Open"
-                                    Click="Button_OnClick" />
-                <controls:IconButton DockPanel.Dock="Right" Margin="8 0 0 0"
-                                    LeadingIcon="{x:Static local:FontAwesomeIcons.FloppyDisk}"
-                                    Text="Backup"
-                                    Command="{Binding BackupCommand}" />
-                <TextBlock Text="{Binding CopyMessage}" DockPanel.Dock="Right" VerticalAlignment="Center"
-                           Foreground="Green" Margin="8 0 0 0" />
-                <TextBox Text="{Binding GnuCashFile}" IsEnabled="False" />
-            </DockPanel>
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                <TextBox
+                    Grid.Column="0"
+                    Text="{Binding GnuCashFile}"
+                    IsEnabled="False" />
+                <TextBlock
+                    Grid.Column="1"
+                    Text="{Binding CopyMessage}"
+                    VerticalAlignment="Center"
+                    Foreground="Green"
+                    Margin="8 0 0 0" />
+                <controls:IconButton
+                    Grid.Column="2"
+                    Margin="8 0 0 0"
+                    LeadingIcon="{x:Static local:FontAwesomeIcons.FloppyDisk}"
+                    Text="Backup"
+                    Command="{Binding BackupCommand}" />
+                <controls:IconButton
+                    Grid.Column="3"
+                    Margin="8 0 0 0"
+                    LeadingIcon="{x:Static local:FontAwesomeIcons.FolderOpen}"
+                    Text="Open"
+                    Click="SaveButton_Click" />
+            </Grid>
         </Border>
 
         <!-- Sidebar + content area -->
@@ -49,7 +60,8 @@
                     <DataTemplate x:DataType="home:NavItem">
                         <StackPanel Orientation="Horizontal" Spacing="10" Margin="12 6">
                             <TextBlock FontFamily="{StaticResource FontAwesomeIcons}" FontWeight="Black"
-                                       Text="{Binding Icon}" VerticalAlignment="Center" Width="16" TextAlignment="Center" />
+                                       Text="{Binding Icon}" VerticalAlignment="Center" Width="16"
+                                       TextAlignment="Center" />
                             <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
                         </StackPanel>
                     </DataTemplate>
