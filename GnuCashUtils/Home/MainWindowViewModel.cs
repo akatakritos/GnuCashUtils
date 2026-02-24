@@ -14,16 +14,16 @@ using Splat;
 
 namespace GnuCashUtils.Home;
 
-public record NavItem(string Key, string Label, Type ScreenVmType);
+public record NavItem(string Key, string Label, string Icon, Type ScreenVmType);
 
 public partial class MainWindowViewModel : ViewModelBase
 {
     public IReadOnlyList<NavItem> NavItems { get; } =
     [
-        new("bulk-edit", "Bulk Edit", typeof(BulkEditScreenViewModel)),
-        new("categorization", "Categorization", typeof(CategorizationScreenViewModel)),
-        new("tagger", "Tagger", typeof(TaggerScreenViewModel)),
-        new("reporting", "Reports", typeof(ReportingScreenViewModel)),
+        new("bulk-edit", "Bulk Edit", FontAwesomeIcons.PenToSquare, typeof(BulkEditScreenViewModel)),
+        new("categorization", "Categorization", FontAwesomeIcons.FolderTree, typeof(CategorizationScreenViewModel)),
+        new("tagger", "Tagger", FontAwesomeIcons.Tags, typeof(TaggerScreenViewModel)),
+        new("reporting", "Reports", FontAwesomeIcons.ChartBar, typeof(ReportingScreenViewModel)),
     ];
 
     [Reactive] public partial NavItem? SelectedNavItem { get; set; }

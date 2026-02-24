@@ -3,6 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:home="clr-namespace:GnuCashUtils.Home"
+        xmlns:local="clr-namespace:GnuCashUtils"
+        xmlns:controls="clr-namespace:GnuCashUtils.Controls"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="GnuCashUtils.Home.MainWindow"
         x:DataType="home:MainWindowViewModel"
@@ -20,8 +22,14 @@
                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                 Padding="8">
             <DockPanel>
-                <Button Content="Open" DockPanel.Dock="Right" Margin="8 0 0 0" Click="Button_OnClick" />
-                <Button Content="Backup" DockPanel.Dock="Right" Command="{Binding BackupCommand}" Margin="8 0 0 0" />
+                <controls:IconButton DockPanel.Dock="Right" Margin="8 0 0 0"
+                                    LeadingIcon="{x:Static local:FontAwesomeIcons.FolderOpen}"
+                                    Text="Open"
+                                    Click="Button_OnClick" />
+                <controls:IconButton DockPanel.Dock="Right" Margin="8 0 0 0"
+                                    LeadingIcon="{x:Static local:FontAwesomeIcons.FloppyDisk}"
+                                    Text="Backup"
+                                    Command="{Binding BackupCommand}" />
                 <TextBlock Text="{Binding CopyMessage}" DockPanel.Dock="Right" VerticalAlignment="Center"
                            Foreground="Green" Margin="8 0 0 0" />
                 <TextBox Text="{Binding GnuCashFile}" IsEnabled="False" />
@@ -39,7 +47,11 @@
                      BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="home:NavItem">
-                        <TextBlock Text="{Binding Label}" Padding="12 6" />
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="12 6">
+                            <TextBlock FontFamily="{StaticResource FontAwesomeIcons}" FontWeight="Black"
+                                       Text="{Binding Icon}" VerticalAlignment="Center" Width="16" TextAlignment="Center" />
+                            <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                        </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
                 <ListBox.Styles>

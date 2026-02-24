@@ -19,6 +19,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://GnuCashUtils/Tagger/TagChip.axaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <FontFamily x:Key="FontAwesomeIcons">avares://GnuCashUtils/Assets/Fonts#Font Awesome 7 Free</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
