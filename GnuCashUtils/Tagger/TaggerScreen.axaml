@@ -121,10 +121,22 @@
             </DataGrid.Styles>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date" Binding="{Binding Date}" IsReadOnly="True" />
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True" />
-                <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" IsReadOnly="True" />
+                <DataGridTemplateColumn Header="Description" IsReadOnly="True" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:TaggedTransaction">
+                            <TextBlock Text="{Binding Description}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="12 0" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Amount" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:TaggedTransaction">
+                            <TextBlock Text="{Binding Amount, StringFormat={}{0:C2}}" TextAlignment="Right" VerticalAlignment="Center" Margin="12 0" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Expense Account" Binding="{Binding Account.Name}" IsReadOnly="True" />
-                <DataGridTemplateColumn Header="Tags" IsReadOnly="True" Width="*">
+                <DataGridTemplateColumn Header="Tags" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:TaggedTransaction">
                             <ItemsControl ItemsSource="{Binding Tags}" VerticalAlignment="Center" Margin="2 0">
