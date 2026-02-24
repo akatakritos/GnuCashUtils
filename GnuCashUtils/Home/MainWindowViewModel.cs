@@ -14,29 +14,27 @@ using Splat;
 
 namespace GnuCashUtils.Home;
 
-public record NavItem(string Key, string Label);
+public record NavItem(string Key, string Label, Type ScreenVmType);
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private readonly Dictionary<string, ViewModelBase> _screenCache = new();
-
     public IReadOnlyList<NavItem> NavItems { get; } =
     [
-        new("bulk-edit", "Bulk Edit"),
-        new("categorization", "Categorization"),
-        new("tagger", "Tagger"),
-        new("reporting", "Reports"),
+        new("bulk-edit", "Bulk Edit", typeof(BulkEditScreenViewModel)),
+        new("categorization", "Categorization", typeof(CategorizationScreenViewModel)),
+        new("tagger", "Tagger", typeof(TaggerScreenViewModel)),
+        new("reporting", "Reports", typeof(ReportingScreenViewModel)),
     ];
 
     [Reactive] public partial NavItem? SelectedNavItem { get; set; }
-    [Reactive] public partial ViewModelBase? CurrentScreen { get; set; }
     [Reactive] public partial string GnuCashFile { get; set; }
     [Reactive] public partial string CopyMessage { get; set; }
 
     public ReactiveCommand<Unit, Unit> BackupCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenFileCommand { get; }
 
-    public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null, IConfigService? configService = null, IAccountStore? store = null)
+    public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null, IConfigService? configService = null,
+        IAccountStore? store = null)
     {
         dbConnectionFactory ??= Locator.Current.GetService<IDbConnectionFactory>()!;
         configService ??= Locator.Current.GetService<IConfigService>()!;
@@ -63,26 +61,5 @@ public partial class MainWindowViewModel : ViewModelBase
 
         this.WhenAnyValue(x => x.GnuCashFile)
             .Subscribe(file => dbConnectionFactory.SetDatabase(file));
-
-        this.WhenAnyValue(x => x.SelectedNavItem)
-            .WhereNotNull()
-            .Subscribe(item => NavigateTo(item.Key));
-    }
-
-    private void NavigateTo(string key)
-    {
-        if (!_screenCache.TryGetValue(key, out var vm))
-        {
-            vm = key switch
-            {
-                "bulk-edit" => Locator.Current.GetRequiredService<BulkEditScreenViewModel>(),
-                "categorization" => Locator.Current.GetRequiredService<CategorizationScreenViewModel>(),
-                "tagger" => Locator.Current.GetRequiredService<TaggerScreenViewModel>(),
-                "reporting" => Locator.Current.GetRequiredService<ReportingScreenViewModel>(),
-                _ => throw new ArgumentException($"Unknown screen key: {key}")
-            };
-            _screenCache[key] = vm;
-        }
-        CurrentScreen = vm;
     }
 }

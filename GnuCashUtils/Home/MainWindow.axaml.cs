@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -12,36 +13,38 @@ namespace GnuCashUtils.Home;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
-    private readonly Dictionary<Type, Control> _viewCache = new();
+    private readonly Dictionary<string, (ViewModelBase Vm, Control View)> _screenCache = new();
 
     public MainWindow()
     {
         InitializeComponent();
-        this.WhenActivated(d =>
+        this.WhenActivated((CompositeDisposable d) =>
         {
-            d(this.WhenAnyValue(x => x.ViewModel!.CurrentScreen)
-                .Subscribe(ShowScreen));
+            this.WhenAnyValue(x => x.ViewModel!.SelectedNavItem)
+                .Subscribe(ShowScreen)
+                .DisposeWith(d);
         });
     }
 
-    private void ShowScreen(ViewModelBase? vm)
+    private void ShowScreen(NavItem? item)
     {
-        if (vm == null)
+        if (item == null)
         {
             ContentArea.Content = null;
             return;
         }
 
-        var type = vm.GetType();
-        if (!_viewCache.TryGetValue(type, out var view))
+        if (!_screenCache.TryGetValue(item.Key, out var cached))
         {
-            var viewForType = typeof(IViewFor<>).MakeGenericType(type);
-            view = (Control)Locator.Current.GetService(viewForType)!;
+            var vm = (ViewModelBase)Locator.Current.GetService(item.ScreenVmType)!;
+            var viewForType = typeof(IViewFor<>).MakeGenericType(item.ScreenVmType);
+            var view = (Control)Locator.Current.GetService(viewForType)!;
             ((IViewFor)view).ViewModel = vm;
-            _viewCache[type] = view;
+            cached = (vm, view);
+            _screenCache[item.Key] = cached;
         }
 
-        ContentArea.Content = view;
+        ContentArea.Content = cached.View;
     }
 
     private async void Button_OnClick(object? sender, RoutedEventArgs e)

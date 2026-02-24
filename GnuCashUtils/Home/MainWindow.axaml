@@ -3,7 +3,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:home="clr-namespace:GnuCashUtils.Home"
-        xmlns:rxui="http://reactiveui.net"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="GnuCashUtils.Home.MainWindow"
         x:DataType="home:MainWindowViewModel"
@@ -23,8 +22,9 @@
             <DockPanel>
                 <Button Content="Open" DockPanel.Dock="Right" Margin="8 0 0 0" Click="Button_OnClick" />
                 <Button Content="Backup" DockPanel.Dock="Right" Command="{Binding BackupCommand}" Margin="8 0 0 0" />
-                <TextBlock Text="{Binding CopyMessage}" DockPanel.Dock="Right" VerticalAlignment="Center" Foreground="Green" Margin="8 0 0 0" />
-                <TextBox Text="{Binding GnuCashFile}" IsEnabled="False"/>
+                <TextBlock Text="{Binding CopyMessage}" DockPanel.Dock="Right" VerticalAlignment="Center"
+                           Foreground="Green" Margin="8 0 0 0" />
+                <TextBox Text="{Binding GnuCashFile}" IsEnabled="False" />
             </DockPanel>
         </Border>
 
