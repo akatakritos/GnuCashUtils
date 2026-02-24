@@ -45,8 +45,8 @@
         <DependentUpon>MainWindow.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
-      <Compile Update="BulkEdit\BulkEditWindow.axaml.cs">
-        <DependentUpon>BulkEditWindow.axaml</DependentUpon>
+      <Compile Update="BulkEdit\BulkEditScreen.axaml.cs">
+        <DependentUpon>BulkEditScreen.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
       <Compile Update="Tagger\TagChip.axaml.cs">

@@ -1,16 +1,15 @@
-<Window xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:GnuCashUtils.Reporting"
         xmlns:reactiveUi="http://reactiveui.net"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="GnuCashUtils.Reporting.ReportingWindow"
+        x:Class="GnuCashUtils.Reporting.ReportingScreen"
         Padding="8"
-        x:DataType="vm:ReportingWindowViewModel"
-        Title="ReportingWindow">
+        x:DataType="vm:ReportingScreenViewModel">
     <Design.DataContext>
-        <vm:ReportingWindowViewModel />
+        <vm:ReportingScreenViewModel />
     </Design.DataContext>
     <DockPanel>
         <Grid
@@ -50,4 +49,4 @@
                 IsVisible="{Binding SelectedReport, Converter={x:Static ObjectConverters.IsNotNull}}" />
         </Panel>
     </DockPanel>
-</Window>
+</UserControl>

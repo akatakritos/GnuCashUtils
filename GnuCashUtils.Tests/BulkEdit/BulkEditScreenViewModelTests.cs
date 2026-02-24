@@ -12,7 +12,7 @@ using ReactiveUI.Testing;
 
 namespace GnuCashUtils.Tests.BulkEdit;
 
-public class BulkEditWindowViewModelTests
+public class BulkEditScreenViewModelTests
 {
     private readonly Fixture _fixture = new();
 
@@ -51,7 +51,7 @@ public class BulkEditWindowViewModelTests
             return this;
         }
 
-        public BulkEditWindowViewModel BuildSubject()
+        public BulkEditScreenViewModel BuildSubject()
         {
             // ImmediateScheduler makes ObserveOn(MainThreadScheduler) synchronous.
             // TestScheduler controls the Throttle so tests advance virtual time instead of waiting.
@@ -67,7 +67,7 @@ public class BulkEditWindowViewModelTests
             MockMediator.Send(Arg.Any<MoveTransactionsCommand>(), Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
 
-            var vm = new BulkEditWindowViewModel(MockMediator, TestScheduler, MockAccountStore);
+            var vm = new BulkEditScreenViewModel(MockMediator, TestScheduler, MockAccountStore);
             vm.Activator.Activate();
             return vm;
         }
@@ -75,7 +75,7 @@ public class BulkEditWindowViewModelTests
 
     // Fires the throttle by advancing virtual time, then waits a tick for the Task.Run inside
     // Observable.FromAsync to complete on the thread pool before the continuation resumes.
-    private async Task SetSourceAccountAndWait(BulkEditWindowViewModel vm, Account account)
+    private async Task SetSourceAccountAndWait(BulkEditScreenViewModel vm, Account account)
     {
         vm.SourceAccount = account;
         _fixture.TestScheduler.AdvanceByMs(300);

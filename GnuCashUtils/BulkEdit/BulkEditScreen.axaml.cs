@@ -4,9 +4,9 @@ using Avalonia.ReactiveUI;
 
 namespace GnuCashUtils.BulkEdit;
 
-public partial class BulkEditWindow : ReactiveWindow<BulkEditWindowViewModel>
+public partial class BulkEditScreen : ReactiveUserControl<BulkEditScreenViewModel>
 {
-    public BulkEditWindow()
+    public BulkEditScreen()
     {
         InitializeComponent();
     }

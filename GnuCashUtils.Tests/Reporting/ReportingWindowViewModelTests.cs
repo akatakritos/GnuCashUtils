@@ -9,7 +9,7 @@ using ReactiveUI;
 
 namespace GnuCashUtils.Tests.Reporting;
 
-public class ReportingWindowViewModelTests
+public class ReportingScreenViewModelTests
 {
     private readonly Fixture _fixture = new();
 
@@ -36,9 +36,9 @@ public class ReportingWindowViewModelTests
             return report;
         }
 
-        public ReportingWindowViewModel BuildSubject()
+        public ReportingScreenViewModel BuildSubject()
         {
-            return new ReportingWindowViewModel(Reports);
+            return new ReportingScreenViewModel(Reports);
         }
     }
 
@@ -77,7 +77,7 @@ public class ReportingWindowViewModelTests
     public void ExecuteCommandCannotExecuteWhenSelectedReportCommandCannotExecute()
     {
         var disabledReport = Fixture.MakeReport("Disabled", canExecute: false);
-        var vm = new ReportingWindowViewModel([disabledReport]);
+        var vm = new ReportingScreenViewModel([disabledReport]);
         bool canExecute = true;
         vm.ExecuteSelectedReportCommand.CanExecute.Subscribe(x => canExecute = x);
 
@@ -107,7 +107,7 @@ public class ReportingWindowViewModelTests
     {
         var disabledReport = Fixture.MakeReport("Disabled", canExecute: false);
         var enabledReport = Fixture.MakeReport("Enabled", canExecute: true);
-        var vm = new ReportingWindowViewModel([disabledReport, enabledReport]);
+        var vm = new ReportingScreenViewModel([disabledReport, enabledReport]);
         bool canExecute = true;
         vm.ExecuteSelectedReportCommand.CanExecute.Subscribe(x => canExecute = x);
 
@@ -127,7 +127,7 @@ public class ReportingWindowViewModelTests
             Fixture.MakeReport("Alpha"),
             Fixture.MakeReport("Mango"),
         };
-        var vm = new ReportingWindowViewModel(reports);
+        var vm = new ReportingScreenViewModel(reports);
 
         vm.Reports.Select(r => r.Name).Should().ContainInOrder("Zebra", "Alpha", "Mango");
     }

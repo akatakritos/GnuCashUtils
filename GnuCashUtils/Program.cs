@@ -73,16 +73,17 @@ sealed class Program
     {
         var services = new ServiceCollection();
         RegisterCoreServices(services);
-        services.AddTransient<IViewFor<BulkEditWindowViewModel>, BulkEditWindow>();
-        
-        services.AddTransient<IViewFor<CategorizationWindowViewModel>, CategorizationWindow>();
-        services.AddTransient<CategorizationWindowViewModel>();
-        
-        services.AddTransient<IViewFor<TaggerWindowViewModel>, TaggerWindow>();
-        services.AddTransient<TaggerWindowViewModel>();
+        services.AddTransient<IViewFor<BulkEditScreenViewModel>, BulkEditScreen>();
+        services.AddTransient<BulkEditScreenViewModel>();
 
-        services.AddTransient<ReportingWindowViewModel>();
-        services.AddTransient<IViewFor<ReportingWindowViewModel>, ReportingWindow>();
+        services.AddTransient<IViewFor<CategorizationScreenViewModel>, CategorizationScreen>();
+        services.AddTransient<CategorizationScreenViewModel>();
+        
+        services.AddTransient<IViewFor<TaggerScreenViewModel>, TaggerScreen>();
+        services.AddTransient<TaggerScreenViewModel>();
+
+        services.AddTransient<ReportingScreenViewModel>();
+        services.AddTransient<IViewFor<ReportingScreenViewModel>, ReportingScreen>();
         services.AddTransient<IReport, TransactionReportViewModel>();
         services.AddTransient<IViewFor<TransactionReportViewModel>, TransactionReport>();
         

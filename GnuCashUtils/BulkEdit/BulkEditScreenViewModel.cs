@@ -20,7 +20,7 @@ using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.BulkEdit;
 
-public partial class BulkEditWindowViewModel : ViewModelBase, IActivatableViewModel
+public partial class BulkEditScreenViewModel : ViewModelBase, IActivatableViewModel
 {
     [Reactive] public partial Account? SourceAccount { get; set; }
     [Reactive] public partial Account? DestinationAccount { get; set; }
@@ -40,7 +40,7 @@ public partial class BulkEditWindowViewModel : ViewModelBase, IActivatableViewMo
 
     public ViewModelActivator Activator { get; } = new();
 
-    public BulkEditWindowViewModel(IMediator? mediator = null, IScheduler? threadPoolScheduler = null,
+    public BulkEditScreenViewModel(IMediator? mediator = null, IScheduler? threadPoolScheduler = null,
         IAccountStore? store = null)
     {
         _accounts = [];

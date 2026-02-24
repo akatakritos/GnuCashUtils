@@ -1,16 +1,15 @@
-<Window xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:GnuCashUtils.Tagger"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="GnuCashUtils.Tagger.TaggerWindow"
-        x:DataType="vm:TaggerWindowViewModel"
-        Title="TaggerWindow"
+        x:Class="GnuCashUtils.Tagger.TaggerScreen"
+        x:DataType="vm:TaggerScreenViewModel"
         Padding="8"
         >
     <Design.DataContext>
-        <vm:TaggerWindowViewModel />
+        <vm:TaggerScreenViewModel />
     </Design.DataContext>
     <DockPanel>
         <Grid
@@ -65,7 +64,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:TagOperation" x:CompileBindings="False">
                                 <Button
-                                    Command="{Binding DataContext.CycleOperationCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
+                                    Command="{Binding DataContext.CycleOperationCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
                                     Background="Transparent"
                                     BorderThickness="0"
@@ -148,4 +147,4 @@
         </DataGrid>
     </DockPanel>
 
-</Window>
+</UserControl>

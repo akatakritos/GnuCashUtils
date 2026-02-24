@@ -18,11 +18,11 @@ using ReactiveUI;
 
 namespace GnuCashUtils.Categorization;
 
-public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowViewModel>
+public partial class CategorizationScreen : ReactiveUserControl<CategorizationScreenViewModel>
 {
     private CategorizationRowViewModel? _contextMenuTargetRow;
 
-    public CategorizationWindow()
+    public CategorizationScreen()
     {
         InitializeComponent();
         this.WhenActivated(d =>
@@ -87,7 +87,8 @@ public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowV
 
     private async void OpenCsvButton_Click(object? sender, RoutedEventArgs e)
     {
-        var result = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        var topLevel = TopLevel.GetTopLevel(this)!;
+        var result = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Open CSV File",
             FileTypeFilter =
@@ -124,6 +125,6 @@ public partial class CategorizationWindow : ReactiveWindow<CategorizationWindowV
             }
         };
         okButton.Click += (_, _) => dialog.Close();
-        await dialog.ShowDialog(this);
+        await dialog.ShowDialog((Window)TopLevel.GetTopLevel(this)!);
     }
 }

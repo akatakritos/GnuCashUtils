@@ -5,8 +5,8 @@
              xmlns:bulkEdit="clr-namespace:GnuCashUtils.BulkEdit"
              xmlns:controls="clr-namespace:GnuCashUtils.Core.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="bulkEdit:BulkEditWindowViewModel"
-             x:Class="GnuCashUtils.BulkEdit.BulkEditWindow">
+             x:DataType="bulkEdit:BulkEditScreenViewModel"
+             x:Class="GnuCashUtils.BulkEdit.BulkEditScreen">
 
     <DockPanel Margin="8">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 0 0 8">

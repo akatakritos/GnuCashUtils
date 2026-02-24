@@ -11,7 +11,7 @@ using ReactiveUI.Testing;
 
 namespace GnuCashUtils.Tests.Tagger;
 
-public class TaggerWindowViewModelTests
+public class TaggerScreenViewModelTests
 {
     private readonly Fixture _fixture = new();
 
@@ -35,7 +35,7 @@ public class TaggerWindowViewModelTests
         public static readonly Tag SampleTag = new("food", null);
         public static readonly Tag AnotherTag = new("transport", null);
 
-        public TaggerWindowViewModel BuildSubject()
+        public TaggerScreenViewModel BuildSubject()
         {
             RxApp.MainThreadScheduler = ImmediateScheduler.Instance;
 
@@ -48,7 +48,7 @@ public class TaggerWindowViewModelTests
             MockMediator.Send(Arg.Any<FetchTags>())
                 .Returns(Task.FromResult(new HashSet<Tag>()));
 
-            return new TaggerWindowViewModel(MockMediator, TestScheduler);
+            return new TaggerScreenViewModel(MockMediator, TestScheduler);
         }
     }
 
@@ -60,7 +60,7 @@ public class TaggerWindowViewModelTests
     }
 
     // Builds the VM, drains the automatic initial WhenAnyValue emission, and clears recorded calls.
-    private async Task<TaggerWindowViewModel> BuildAndDrainInitial()
+    private async Task<TaggerScreenViewModel> BuildAndDrainInitial()
     {
         var vm = _fixture.BuildSubject();
         await AdvancePastThrottle();

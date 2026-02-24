@@ -1,14 +1,13 @@
-<Window xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:categorization="clr-namespace:GnuCashUtils.Categorization"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
-        x:Class="GnuCashUtils.Categorization.CategorizationWindow"
-        x:DataType="categorization:CategorizationWindowViewModel"
-        Title="Categorization">
+        x:Class="GnuCashUtils.Categorization.CategorizationScreen"
+        x:DataType="categorization:CategorizationScreenViewModel">
     <Design.DataContext>    
-        <categorization:CategorizationWindowViewModel/>
+        <categorization:CategorizationScreenViewModel/>
     </Design.DataContext>
 
     <DockPanel Margin="8">
@@ -80,7 +79,7 @@
                     <DataGridTemplateColumn.CellEditingTemplate>
                         <DataTemplate x:CompileBindings="False">
                             <AutoCompleteBox
-                                ItemsSource="{Binding DataContext.Accounts, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                ItemsSource="{Binding DataContext.Accounts, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                                 SelectedItem="{Binding SelectedAccount}"
                                 FilterMode="ContainsOrdinal"
                                 ValueMemberBinding="{Binding FullName}">
@@ -114,4 +113,4 @@
 
     </DockPanel>
 
-</Window>
+</UserControl>

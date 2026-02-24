@@ -1,10 +1,8 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reactive;
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
-using Avalonia.ReactiveUI;
 using GnuCashUtils.BulkEdit;
 using GnuCashUtils.Categorization;
 using GnuCashUtils.Core;
@@ -16,21 +14,28 @@ using Splat;
 
 namespace GnuCashUtils.Home;
 
+public record NavItem(string Key, string Label);
+
 public partial class MainWindowViewModel : ViewModelBase
 {
-#pragma warning disable CA1822 // Mark members as static
-    public string Greeting => "Welcome to Avalonia!";
-#pragma warning restore CA1822 // Mark members as static
-    
-    public ReactiveCommand<Unit, Unit> BulkEditAccountCommand { get; }
-    public ReactiveCommand<Unit, Unit> CategorizationCommand { get; }
-    public ReactiveCommand<Unit, Unit> TaggerCommand { get; }
-    public ReactiveCommand<Unit, Unit> ReportingCommand { get; }
-    public ReactiveCommand<Unit, Unit> BackupCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenFileCommand { get; }
+    private readonly Dictionary<string, ViewModelBase> _screenCache = new();
+
+    public IReadOnlyList<NavItem> NavItems { get; } =
+    [
+        new("bulk-edit", "Bulk Edit"),
+        new("categorization", "Categorization"),
+        new("tagger", "Tagger"),
+        new("reporting", "Reports"),
+    ];
+
+    [Reactive] public partial NavItem? SelectedNavItem { get; set; }
+    [Reactive] public partial ViewModelBase? CurrentScreen { get; set; }
     [Reactive] public partial string GnuCashFile { get; set; }
     [Reactive] public partial string CopyMessage { get; set; }
-    
+
+    public ReactiveCommand<Unit, Unit> BackupCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenFileCommand { get; }
+
     public MainWindowViewModel(IDbConnectionFactory? dbConnectionFactory = null, IConfigService? configService = null, IAccountStore? store = null)
     {
         dbConnectionFactory ??= Locator.Current.GetService<IDbConnectionFactory>()!;
@@ -43,81 +48,41 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenFileCommand = ReactiveCommand.CreateFromTask(() => store.Load());
         OpenFileCommand.Execute();
 
-
         if (Design.IsDesignMode)
         {
             CopyMessage = "Copied to /Users/mattburke/personal-copy.sqlite.12345.gnucash";
         }
-
-        BulkEditAccountCommand = ReactiveCommand.Create(() =>
-        {
-            var viewLocator = Locator.Current.GetService<IViewLocator>();
-            var viewModel = new BulkEditWindowViewModel(); // TODO: resolve this from container?
-            var view = viewLocator!.ResolveView(viewModel);
-
-            if (view is not ReactiveWindow<BulkEditWindowViewModel> window)
-                throw new Exception("ViewModel does not have associated Window");
-
-            window.ViewModel = viewModel;
-            window.Show();
-            return Unit.Default;
-        });
-
-        CategorizationCommand = ReactiveCommand.Create(() =>
-        {
-            var viewLocator = Locator.Current.GetRequiredService<IViewLocator>();
-            var viewModel = Locator.Current.GetRequiredService<CategorizationWindowViewModel>();
-            var view = viewLocator.ResolveView(viewModel);
-
-            if (view is not ReactiveWindow<CategorizationWindowViewModel> window)
-                throw new Exception("ViewModel does not have associated Window");
-
-            window.ViewModel = viewModel;
-            window.Show();
-            return Unit.Default;
-        });
-
-        TaggerCommand = ReactiveCommand.Create(() =>
-        {
-            var viewLocator = Locator.Current.GetRequiredService<IViewLocator>();
-            var viewModel = Locator.Current.GetRequiredService<TaggerWindowViewModel>();
-            var view = viewLocator.ResolveView(viewModel);
-
-            if (view is not ReactiveWindow<TaggerWindowViewModel> window)
-                throw new Exception("ViewModel does not have associated Window");
-
-            window.ViewModel = viewModel;
-            window.Show();
-            return Unit.Default;
-
-        });
-
-        ReportingCommand = ReactiveCommand.Create(() =>
-        {
-            var viewLocator = Locator.Current.GetRequiredService<IViewLocator>();
-            var viewModel = Locator.Current.GetRequiredService<ReportingWindowViewModel>();
-            var view = viewLocator.ResolveView(viewModel);
-
-            if (view is not ReactiveWindow<ReportingWindowViewModel> window)
-                throw new Exception("ViewModel does not have associated Window");
-
-            window.ViewModel = viewModel;
-            window.Show();
-            return Unit.Default;
-        });
 
         BackupCommand = ReactiveCommand.CreateRunInBackground(() =>
         {
             var ext = Path.GetExtension(GnuCashFile);
             var newPath = Path.ChangeExtension(GnuCashFile, DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ext);
             File.Copy(GnuCashFile, newPath, overwrite: false);
-            
             CopyMessage = "Copied to " + newPath;
         });
-        
+
         this.WhenAnyValue(x => x.GnuCashFile)
             .Subscribe(file => dbConnectionFactory.SetDatabase(file));
-        
 
+        this.WhenAnyValue(x => x.SelectedNavItem)
+            .WhereNotNull()
+            .Subscribe(item => NavigateTo(item.Key));
+    }
+
+    private void NavigateTo(string key)
+    {
+        if (!_screenCache.TryGetValue(key, out var vm))
+        {
+            vm = key switch
+            {
+                "bulk-edit" => Locator.Current.GetRequiredService<BulkEditScreenViewModel>(),
+                "categorization" => Locator.Current.GetRequiredService<CategorizationScreenViewModel>(),
+                "tagger" => Locator.Current.GetRequiredService<TaggerScreenViewModel>(),
+                "reporting" => Locator.Current.GetRequiredService<ReportingScreenViewModel>(),
+                _ => throw new ArgumentException($"Unknown screen key: {key}")
+            };
+            _screenCache[key] = vm;
+        }
+        CurrentScreen = vm;
     }
 }

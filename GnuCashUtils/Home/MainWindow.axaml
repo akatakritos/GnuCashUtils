@@ -3,33 +3,57 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:home="clr-namespace:GnuCashUtils.Home"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:rxui="http://reactiveui.net"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="GnuCashUtils.Home.MainWindow"
         x:DataType="home:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="GnuCashUtils">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <home:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid Margin="8" RowDefinitions="Auto Auto Auto Auto Auto Auto" >
-        <DockPanel Grid.Row="0" Margin="0 0 0 8">
-            <Button Content="Open"  DockPanel.Dock="Right"  Margin="8 0 0 0" Click="Button_OnClick" />
-            <TextBox Text="{Binding GnuCashFile}" IsEnabled="False"/>
-        </DockPanel>
+    <Grid RowDefinitions="Auto,*">
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0 0 0 8">
-            <Button Content="Backup" Command="{Binding BackupCommand}" Margin="0 0 8 0"/>
-            <TextBlock Text="{Binding CopyMessage}" VerticalAlignment="Center" Foreground="Green" />
-        </StackPanel>
+        <!-- Top bar: file picker + backup -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                Padding="8">
+            <DockPanel>
+                <Button Content="Open" DockPanel.Dock="Right" Margin="8 0 0 0" Click="Button_OnClick" />
+                <Button Content="Backup" DockPanel.Dock="Right" Command="{Binding BackupCommand}" Margin="8 0 0 0" />
+                <TextBlock Text="{Binding CopyMessage}" DockPanel.Dock="Right" VerticalAlignment="Center" Foreground="Green" Margin="8 0 0 0" />
+                <TextBox Text="{Binding GnuCashFile}" IsEnabled="False"/>
+            </DockPanel>
+        </Border>
 
-        <Button Grid.Row="2" Content="Bulk Edit Account" Command="{Binding BulkEditAccountCommand}" Margin="0 0 0 8" />
-        <Button Grid.Row="3" Content="Categorization" Command="{Binding CategorizationCommand}" />
-        <Button Grid.Row="4" Content="Tagger" Command="{Binding TaggerCommand}" Margin="0 0 0 8" />
-        <Button Grid.Row="5" Content="Reports" Command="{Binding ReportingCommand}" />
+        <!-- Sidebar + content area -->
+        <Grid Grid.Row="1" ColumnDefinitions="180,*">
+
+            <!-- Sidebar nav -->
+            <ListBox Grid.Column="0"
+                     ItemsSource="{Binding NavItems}"
+                     SelectedItem="{Binding SelectedNavItem}"
+                     BorderThickness="0 0 1 0"
+                     BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="home:NavItem">
+                        <TextBlock Text="{Binding Label}" Padding="12 6" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Cursor" Value="Hand" />
+                    </Style>
+                </ListBox.Styles>
+            </ListBox>
+
+            <!-- Main content area -->
+            <ContentControl Grid.Column="1" x:Name="ContentArea" />
+
+        </Grid>
     </Grid>
 
 </Window>

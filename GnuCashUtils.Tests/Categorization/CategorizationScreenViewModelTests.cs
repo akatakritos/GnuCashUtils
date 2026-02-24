@@ -13,7 +13,7 @@ using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.Tests.Categorization;
 
-public class CategorizationWindowViewModelTests
+public class CategorizationScreenViewModelTests
 {
     private readonly Fixture _fixture = new();
 
@@ -52,7 +52,7 @@ public class CategorizationWindowViewModelTests
 
         public SourceCache<Account, string> Accounts = new(x => x.FullName);
 
-        public CategorizationWindowViewModel BuildSubject()
+        public CategorizationScreenViewModel BuildSubject()
         {
             MockMediator.Send(Arg.Any<ParseCsvRequest>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(_transactions));
@@ -68,7 +68,7 @@ public class CategorizationWindowViewModelTests
             MockClassifierBuilder.Build(Arg.Any<string>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(BuildClassifier()));
 
-            var vm = new CategorizationWindowViewModel(MockMediator, MockConfigService, MockAccountStore,
+            var vm = new CategorizationScreenViewModel(MockMediator, MockConfigService, MockAccountStore,
                 MockClassifierBuilder);
             vm.ShowError.RegisterHandler(ctx => ctx.SetOutput(Unit.Default));
             vm.Activator.Activate();

@@ -21,9 +21,9 @@ namespace GnuCashUtils.Tagger;
 // TODO: search should include tag
 // TODO: make it prettier
 
-public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewModel
+public partial class TaggerScreenViewModel : ViewModelBase, IActivatableViewModel
 {
-    private static readonly ILogger _log = Log.ForContext<TaggerWindowViewModel>();
+    private static readonly ILogger _log = Log.ForContext<TaggerScreenViewModel>();
     private readonly IMediator _mediator;
 
     private SourceCache<Tag, Tag> _tagsCache = new(x => x);
@@ -70,7 +70,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
     private readonly ReadOnlyObservableCollection<TaggedTransaction> _transactions;
     public ReadOnlyObservableCollection<TaggedTransaction> Transactions => _transactions;
 
-    public TaggerWindowViewModel(IMediator mediator, IScheduler? scheduler = null)
+    public TaggerScreenViewModel(IMediator mediator, IScheduler? scheduler = null)
     {
         _tags = [];
         _searchText = "";
@@ -109,7 +109,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
                         updater.Clear();
                         updater.AddOrUpdate(tags);
                     });
-                });
+                }).DisposeWith(d);
         });
 
 
@@ -213,7 +213,7 @@ public partial class TaggerWindowViewModel : ViewModelBase, IActivatableViewMode
 
     #region design mode
 
-    public TaggerWindowViewModel()
+    public TaggerScreenViewModel()
     {
         _mediator = null!;
         _searchText = "";

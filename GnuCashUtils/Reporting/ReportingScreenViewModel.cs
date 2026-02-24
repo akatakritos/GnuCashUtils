@@ -9,13 +9,13 @@ using ReactiveUI.SourceGenerators;
 
 namespace GnuCashUtils.Reporting;
 
-public partial class ReportingWindowViewModel: ViewModelBase
+public partial class ReportingScreenViewModel: ViewModelBase
 {
     public ObservableCollection<IReport> Reports { get; } = [];
     [Reactive] public partial IReport? SelectedReport { get; set; }
     public ReactiveCommand<Unit, Unit> ExecuteSelectedReportCommand { get; }
     
-    public ReportingWindowViewModel(IEnumerable<IReport> reports)
+    public ReportingScreenViewModel(IEnumerable<IReport> reports)
     {
         Reports.AddRange(reports);
 
@@ -28,7 +28,7 @@ public partial class ReportingWindowViewModel: ViewModelBase
     }
 
     #region designer
-    public ReportingWindowViewModel()
+    public ReportingScreenViewModel()
     {
         Reports.Add(new TransactionReport.TransactionReportViewModel());
         ExecuteSelectedReportCommand = null!;

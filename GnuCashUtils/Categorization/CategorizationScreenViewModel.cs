@@ -25,9 +25,9 @@ using ILogger = Serilog.ILogger;
 
 namespace GnuCashUtils.Categorization;
 
-public partial class CategorizationWindowViewModel : ViewModelBase, IActivatableViewModel
+public partial class CategorizationScreenViewModel : ViewModelBase, IActivatableViewModel
 {
-    private static readonly ILogger _log = Log.ForContext<CategorizationWindowViewModel>();
+    private static readonly ILogger _log = Log.ForContext<CategorizationScreenViewModel>();
 
     private readonly IMediator _mediator;
     private readonly IConfigService _configService;
@@ -53,7 +53,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
     [ObservableAsProperty] public partial double BuildingProgress { get; }
 
 
-    public CategorizationWindowViewModel(IMediator? mediator = null, IConfigService? configService = null,
+    public CategorizationScreenViewModel(IMediator? mediator = null, IConfigService? configService = null,
         IAccountStore? store = null, IClassifierBuilder? classifierBuilder = null)
     {
         _accounts = [];
@@ -203,7 +203,7 @@ public partial class CategorizationWindowViewModel : ViewModelBase, IActivatable
 
     #region Design Mode
 
-    public CategorizationWindowViewModel()
+    public CategorizationScreenViewModel()
     {
         _accounts = [];
         _accountTree = [];

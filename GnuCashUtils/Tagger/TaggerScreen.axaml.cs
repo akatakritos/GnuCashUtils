@@ -7,9 +7,9 @@ using Avalonia.Threading;
 
 namespace GnuCashUtils.Tagger;
 
-public partial class TaggerWindow : ReactiveWindow<TaggerWindowViewModel>
+public partial class TaggerScreen : ReactiveUserControl<TaggerScreenViewModel>
 {
-    public TaggerWindow()
+    public TaggerScreen()
     {
         InitializeComponent();
 
