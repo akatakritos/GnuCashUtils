@@ -66,7 +66,29 @@ public class ExecuteTransactionReportHandler(IDbConnectionFactory db, IAccountSt
             .OrderBy(g => g.Account.FullName)
             .ToList();
 
-        return new TransactionReportData { AccountGroups = groups };
+        var filters = new List<ReportFilter>();
+        if (request.Tag != null)
+        {
+            var displayText = request.Tag.Value != null
+                ? $"{request.Tag.Name}={request.Tag.Value}"
+                : request.Tag.Name;
+            filters.Add(new ReportFilter("Tag", displayText, TagChipColor(request.Tag.Name)));
+        }
+
+        return new TransactionReportData { AccountGroups = groups, Filters = filters };
+    }
+
+    // Mirrors the deterministic palette in Tagger/Converters.cs
+    private static readonly string[] _tagColors =
+    [
+        "#1976D2", "#43A047", "#AD1457", "#6A1B9A",
+        "#F57C00", "#00838F", "#C62828", "#37474F",
+    ];
+
+    private static string TagChipColor(string tagName)
+    {
+        var hash = tagName.Aggregate(0, (h, c) => h * 31 + c);
+        return _tagColors[Math.Abs(hash) % _tagColors.Length];
     }
 
     protected virtual List<Dto> GetTransactions(ExecuteTransactionReport request)
@@ -100,9 +122,12 @@ order by a.name, t.post_date");
     }
 }
 
+public record ReportFilter(string Name, string Value, string? ChipColor = null);
+
 public class TransactionReportData
 {
     public required IReadOnlyList<TransactionReportAccountGroup> AccountGroups { get; init; }
+    public IReadOnlyList<ReportFilter> Filters { get; init; } = [];
     public decimal GrandTotal => AccountGroups.Sum(g => g.Total);
     public string FormattedGrandTotal => GrandTotal.ToString("C");
 }

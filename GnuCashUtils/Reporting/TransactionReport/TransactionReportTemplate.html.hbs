@@ -69,10 +69,47 @@
             border-top: 2px solid #333;
             font-size: 1.05rem;
         }
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .filter-item .filter-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .chip {
+            display: inline-block;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #fff;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
     <h1>Transaction Report</h1>
+
+    {{#if Filters}}
+    <div class="filters">
+        {{#each Filters}}
+        <span class="filter-item">
+            <span class="filter-name">{{Name}}:</span>
+            {{#if ChipColor}}
+            <span class="chip" style="background:{{ChipColor}}">{{Value}}</span>
+            {{else}}
+            {{Value}}
+            {{/if}}
+        </span>
+        {{/each}}
+    </div>
+    {{/if}}
 
     {{#each AccountGroups}}
     <h2>{{Account.FullName}}</h2>
