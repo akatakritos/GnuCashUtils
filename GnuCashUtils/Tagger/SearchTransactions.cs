@@ -74,7 +74,7 @@ limit 1000
 
             if (Notes != null)
             {
-                txn.Tags.AddRange(Tag.Parse(Notes));
+                txn.Tags.AddRange(Core.Tag.Parse(Notes));
             }
 
             txn.IsDirty = false;

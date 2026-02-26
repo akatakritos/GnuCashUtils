@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:home="clr-namespace:GnuCashUtils.Home"
         xmlns:local="clr-namespace:GnuCashUtils"
-        xmlns:controls="clr-namespace:GnuCashUtils.Controls"
+        xmlns:controls="clr-namespace:GnuCashUtils.Core.Controls"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="GnuCashUtils.Home.MainWindow"
         x:DataType="home:MainWindowViewModel"

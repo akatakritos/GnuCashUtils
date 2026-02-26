@@ -3,6 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:GnuCashUtils.Tagger"
+        xmlns:core="clr-namespace:GnuCashUtils.Core"
+        xmlns:controls="clr-namespace:GnuCashUtils.Core.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="GnuCashUtils.Tagger.TaggerScreen"
         x:DataType="vm:TaggerScreenViewModel"
@@ -49,8 +51,8 @@
                     IsTextCompletionEnabled="False"
                     Watermark="Tag name or name=value…">
                     <AutoCompleteBox.ItemTemplate>
-                        <DataTemplate x:DataType="vm:Tag">
-                            <vm:TagChip ChipTag="{Binding}" HorizontalAlignment="Left"/>
+                        <DataTemplate x:DataType="core:Tag">
+                            <controls:TagChip ChipTag="{Binding}" HorizontalAlignment="Left"/>
                         </DataTemplate>
                     </AutoCompleteBox.ItemTemplate>
                 </AutoCompleteBox>
@@ -69,10 +71,10 @@
                                     Background="Transparent"
                                     BorderThickness="0"
                                     Padding="2">
-                                    <vm:TagChip
+                                    <controls:TagChip
                                         ChipTag="{Binding Tag}"
                                         Opacity="{Binding Operation, Converter={x:Static vm:Converters.OperationToOpacity}}">
-                                        <vm:TagChip.TrailingContent>
+                                        <controls:TagChip.TrailingContent>
                                             <Border
                                                 IsVisible="{Binding Operation, Converter={x:Static vm:Converters.OperationIsNotNone}}"
                                                 Background="{Binding Operation, Converter={x:Static vm:Converters.OperationToBadgeBackground}}"
@@ -87,8 +89,8 @@
                                                     FontWeight="Bold"
                                                     VerticalAlignment="Center" />
                                             </Border>
-                                        </vm:TagChip.TrailingContent>
-                                    </vm:TagChip>
+                                        </controls:TagChip.TrailingContent>
+                                    </controls:TagChip>
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -146,8 +148,8 @@
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:Tag">
-                                        <vm:TagChip ChipTag="{Binding }" />
+                                    <DataTemplate x:DataType="core:Tag">
+                                        <controls:TagChip ChipTag="{Binding }" />
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

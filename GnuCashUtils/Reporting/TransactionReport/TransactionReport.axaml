@@ -5,6 +5,8 @@
              xmlns:vm="clr-namespace:GnuCashUtils.Reporting"
              xmlns:tagger="clr-namespace:GnuCashUtils.Tagger"
              xmlns:transactionReport="clr-namespace:GnuCashUtils.Reporting.TransactionReport"
+             xmlns:core="clr-namespace:GnuCashUtils.Core"
+             xmlns:controls="clr-namespace:GnuCashUtils.Core.Controls"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="200"
              x:Class="GnuCashUtils.Reporting.TransactionReport.TransactionReport"
              x:DataType="transactionReport:TransactionReportViewModel"
@@ -25,8 +27,8 @@
                 SelectedItem="{Binding SelectedTag}"
                 HorizontalAlignment="Stretch">
                 <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="tagger:Tag">
-                        <tagger:TagChip ChipTag="{Binding}" HorizontalAlignment="Left" />
+                    <DataTemplate x:DataType="core:Tag">
+                        <controls:TagChip ChipTag="{Binding}" HorizontalAlignment="Left" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>

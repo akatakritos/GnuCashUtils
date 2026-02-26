@@ -4,7 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 
-namespace GnuCashUtils.Controls;
+namespace GnuCashUtils.Core.Controls;
 
 public class IconButton : Button
 {

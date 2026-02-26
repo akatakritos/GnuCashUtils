@@ -1,6 +1,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Threading.Tasks;
 using AwesomeAssertions;
+using GnuCashUtils.Core;
 using GnuCashUtils.Reporting.TransactionReport;
 using GnuCashUtils.Tagger;
 using MediatR;

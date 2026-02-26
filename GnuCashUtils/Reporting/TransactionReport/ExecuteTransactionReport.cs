@@ -10,6 +10,7 @@ using GnuCashUtils.Core;
 using GnuCashUtils.Tagger;
 using HandlebarsDotNet;
 using MediatR;
+using Tag = GnuCashUtils.Core.Tag;
 
 namespace GnuCashUtils.Reporting.TransactionReport;
 

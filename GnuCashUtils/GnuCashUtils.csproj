@@ -49,12 +49,12 @@
         <DependentUpon>BulkEditScreen.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
-      <Compile Update="Tagger\TagChip.axaml.cs">
-        <DependentUpon>TagChip.axaml</DependentUpon>
-          <SubType>Code</SubType>
-      </Compile>
       <Compile Update="Reporting\TransactionReport\TransactionReport.axaml.cs">
         <DependentUpon>TransactionReport.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Core\Controls\TagChip.axaml.cs">
+        <DependentUpon>TagChip.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
     </ItemGroup>

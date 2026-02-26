@@ -18,7 +18,7 @@ public partial class TaggerScreen : ReactiveUserControl<TaggerScreenViewModel>
         // Filter by tag name/value rather than the encoded #[...] string
         tagBox.ItemFilter = (search, item) =>
         {
-            if (item is not Tag tag || search == null) return false;
+            if (item is not Core.Tag tag || search == null) return false;
             return tag.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
                 || (tag.Value != null && tag.Value.Contains(search, StringComparison.OrdinalIgnoreCase));
         };
@@ -26,7 +26,7 @@ public partial class TaggerScreen : ReactiveUserControl<TaggerScreenViewModel>
         // Mouse-click (or arrow key + Enter) selection from the dropdown
         tagBox.DropDownClosed += (_, _) =>
         {
-            if (tagBox.SelectedItem is Tag tag)
+            if (tagBox.SelectedItem is Core.Tag tag)
             {
                 ViewModel!.AddNewTagCommand.Execute(tag).Subscribe();
                 tagBox.SelectedItem = null;
@@ -52,7 +52,7 @@ public partial class TaggerScreen : ReactiveUserControl<TaggerScreenViewModel>
                 || (t.Value != null && $"{t.Name}={t.Value}".Equals(text, StringComparison.OrdinalIgnoreCase)));
 
             // Qualify to avoid ambiguity with StyledElement.Tag (object?) property
-            var tagToAdd = existingTag ?? GnuCashUtils.Tagger.Tag.FromInput(text);
+            var tagToAdd = existingTag ?? Core.Tag.FromInput(text);
             if (tagToAdd == null) return;
 
             ViewModel!.AddNewTagCommand.Execute(tagToAdd).Subscribe();

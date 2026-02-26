@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace GnuCashUtils.Tagger;
+namespace GnuCashUtils.Core;
 
 public partial record Tag(string Name, string? Value = null)
 {

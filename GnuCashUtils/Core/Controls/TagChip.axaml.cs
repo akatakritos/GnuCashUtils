@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.Primitives;
 
-namespace GnuCashUtils.Tagger;
+namespace GnuCashUtils.Core.Controls;
 
 public class TagChip : TemplatedControl
 {

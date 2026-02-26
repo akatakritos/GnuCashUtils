@@ -1,39 +1,40 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:vm="clr-namespace:GnuCashUtils.Tagger">
+                    xmlns:vm="clr-namespace:GnuCashUtils.Tagger"
+                    xmlns:controls="clr-namespace:GnuCashUtils.Core.Controls">
     <Design.PreviewWith>
         <StackPanel Margin="8" Spacing="4">
-            <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTag}" HorizontalAlignment="Center" />
-            <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTagWithValues}" HorizontalAlignment="Center" />
-            <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTag}" HorizontalAlignment="Center">
-                <vm:TagChip.TrailingContent>
+            <controls:TagChip ChipTag="{x:Static controls:TagChip.PreviewTag}" HorizontalAlignment="Center" />
+            <controls:TagChip ChipTag="{x:Static controls:TagChip.PreviewTagWithValues}" HorizontalAlignment="Center" />
+            <controls:TagChip ChipTag="{x:Static controls:TagChip.PreviewTag}" HorizontalAlignment="Center">
+                <controls:TagChip.TrailingContent>
                     <Border Background="#2E7D32" BorderBrush="White" BorderThickness="1.5"
                             CornerRadius="7" Padding="3.5 0">
                         <TextBlock Text="+" Foreground="White" FontSize="10" FontWeight="Bold" />
                     </Border>
-                </vm:TagChip.TrailingContent>
-            </vm:TagChip>
-            <vm:TagChip ChipTag="{x:Static vm:TagChip.PreviewTagWithValues}" HorizontalAlignment="Center">
-                <vm:TagChip.TrailingContent>
+                </controls:TagChip.TrailingContent>
+            </controls:TagChip>
+            <controls:TagChip ChipTag="{x:Static controls:TagChip.PreviewTagWithValues}" HorizontalAlignment="Center">
+                <controls:TagChip.TrailingContent>
                     <Border Background="#C62828" BorderBrush="White" BorderThickness="1.5"
                             CornerRadius="7" Padding="3.5 0">
                         <TextBlock Text="−" Foreground="White" FontSize="10" FontWeight="Bold" />
                     </Border>
-                </vm:TagChip.TrailingContent>
-            </vm:TagChip>
+                </controls:TagChip.TrailingContent>
+            </controls:TagChip>
         </StackPanel>
     </Design.PreviewWith>
-    <ControlTheme x:Key="{x:Type vm:TagChip}" TargetType="vm:TagChip">
+    <ControlTheme x:Key="{x:Type controls:TagChip}" TargetType="controls:TagChip">
         <Setter Property="Template">
             <ControlTemplate>
                 <Border
-                    Background="{TemplateBinding ChipTag, Converter={x:Static vm:Converters.TagToColor}}"
+                    Background="{TemplateBinding ChipTag, Converter={x:Static controls:TagConverters.TagToColor}}"
                     CornerRadius="10"
                     Padding="7 2 5 2"
                     Margin="2 2">
                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                         <TextBlock
-                            Text="{TemplateBinding ChipTag, Converter={x:Static vm:Converters.TagToDisplayText}}"
+                            Text="{TemplateBinding ChipTag, Converter={x:Static controls:TagConverters.TagToDisplayText}}"
                             Foreground="White"
                             FontSize="11"
                             VerticalAlignment="Center" />

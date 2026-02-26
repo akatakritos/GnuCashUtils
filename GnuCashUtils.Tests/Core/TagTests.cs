@@ -1,7 +1,7 @@
 using AwesomeAssertions;
-using GnuCashUtils.Tagger;
+using GnuCashUtils.Core;
 
-namespace GnuCashUtils.Tests.Tagger;
+namespace GnuCashUtils.Tests.Core;
 
 public class TagTests
 {

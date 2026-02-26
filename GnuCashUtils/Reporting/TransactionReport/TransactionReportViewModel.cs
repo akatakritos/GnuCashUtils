@@ -11,6 +11,7 @@ using GnuCashUtils.Tagger;
 using MediatR;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using Tag = GnuCashUtils.Core.Tag;
 using Unit = System.Reactive.Unit;
 
 namespace GnuCashUtils.Reporting.TransactionReport;

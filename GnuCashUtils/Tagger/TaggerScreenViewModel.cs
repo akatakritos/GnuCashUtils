@@ -26,8 +26,8 @@ public partial class TaggerScreenViewModel : ViewModelBase, IActivatableViewMode
     private static readonly ILogger _log = Log.ForContext<TaggerScreenViewModel>();
     private readonly IMediator _mediator;
 
-    private SourceCache<Tag, Tag> _tagsCache = new(x => x);
-    [ObservableAsProperty] public partial IReadOnlyCollection<Tag> Tags { get; }
+    private SourceCache<Core.Tag, Core.Tag> _tagsCache = new(x => x);
+    [ObservableAsProperty] public partial IReadOnlyCollection<Core.Tag> Tags { get; }
 
     [Reactive] public partial string SearchText { get; set; }
     [Reactive] public partial DateOnly? StartDate { get; set; }
@@ -44,12 +44,12 @@ public partial class TaggerScreenViewModel : ViewModelBase, IActivatableViewMode
     /// Adds a tag selected from the autocomplete into the pending operations as Add.
     /// If an operation already exists for that tag, its operation is set to Add.
     /// </summary>
-    public ReactiveCommand<Tag, Unit> AddTagCommand { get; }
+    public ReactiveCommand<Core.Tag, Unit> AddTagCommand { get; }
 
     /// <summary>
     /// Adds a brand new tag from the autocomplete into the list of tags.
     /// </summary>
-    public ReactiveCommand<Tag, Unit> AddNewTagCommand { get; }
+    public ReactiveCommand<Core.Tag, Unit> AddNewTagCommand { get; }
 
     /// <summary>
     /// Cycles the operation of a TagOperation: None → Add → Delete → None.
@@ -113,14 +113,14 @@ public partial class TaggerScreenViewModel : ViewModelBase, IActivatableViewMode
         });
 
 
-        AddTagCommand = ReactiveCommand.Create<Tag, Unit>(OnAddTag);
-        AddNewTagCommand = ReactiveCommand.Create<Tag, Unit>(OnAddNewTag);
+        AddTagCommand = ReactiveCommand.Create<Core.Tag, Unit>(OnAddTag);
+        AddNewTagCommand = ReactiveCommand.Create<Core.Tag, Unit>(OnAddNewTag);
         CycleOperationCommand = ReactiveCommand.Create<TagOperation, Unit>(OnCycleOperation);
         ApplyCommand = ReactiveCommand.Create(ApplyCommandImpl);
         SaveCommand = ReactiveCommand.CreateFromTask(SaveCommandImpl);
     }
 
-    private Unit OnAddTag(Tag tag)
+    private Unit OnAddTag(Core.Tag tag)
     {
         var existing = PendingOperations.FirstOrDefault(t => t.Tag == tag);
         if (existing != null)
@@ -142,7 +142,7 @@ public partial class TaggerScreenViewModel : ViewModelBase, IActivatableViewMode
         return Unit.Default;
     }
 
-    private Unit OnAddNewTag(Tag tag)
+    private Unit OnAddNewTag(Core.Tag tag)
     {
         if (!_tagsCache.Lookup(tag).HasValue)
         {
@@ -230,15 +230,15 @@ public partial class TaggerScreenViewModel : ViewModelBase, IActivatableViewMode
             TransactionGuid = "txn-1", Description = "Coffee Shop", Amount = -5.00m,
             Date = new DateOnly(2024, 1, 10), Account = new Account() { FullName = "Expenses:Coffee" }
         };
-        txn1.Tags.Add(new Tag("food"));
-        txn1.Tags.Add(new Tag("vacation", "disney-2024"));
+        txn1.Tags.Add(new Core.Tag("food"));
+        txn1.Tags.Add(new Core.Tag("vacation", "disney-2024"));
 
         var txn2 = new TaggedTransaction
         {
             TransactionGuid = "txn-2", Description = "Gas Station", Amount = -60.00m,
             Date = new DateOnly(2024, 1, 15), Account = new() { FullName = "Expenses:Gas" },
         };
-        txn2.Tags.Add(new Tag("travel"));
+        txn2.Tags.Add(new Core.Tag("travel"));
 
         var txn3 = new TaggedTransaction
         {
@@ -257,14 +257,14 @@ public partial class TaggerScreenViewModel : ViewModelBase, IActivatableViewMode
 
 
         _tagsCache.AddOrUpdate([
-            new Tag("vacation"),
-            new Tag("vacation", "disney-2024"),
-            new Tag("vacation", "disney-2025")
+            new Core.Tag("vacation"),
+            new Core.Tag("vacation", "disney-2024"),
+            new Core.Tag("vacation", "disney-2025")
         ]);
         
-        PendingOperations.Add(new TagOperation { Tag = new Tag("vacation"), Operation = OperationType.None });
-        PendingOperations.Add(new TagOperation { Tag = new Tag("vacation", "disney-2024"), Operation = OperationType.Add });
-        PendingOperations.Add(new TagOperation { Tag = new Tag("vacation", "disney-2025"), Operation = OperationType.Delete });
+        PendingOperations.Add(new TagOperation { Tag = new Core.Tag("vacation"), Operation = OperationType.None });
+        PendingOperations.Add(new TagOperation { Tag = new Core.Tag("vacation", "disney-2024"), Operation = OperationType.Add });
+        PendingOperations.Add(new TagOperation { Tag = new Core.Tag("vacation", "disney-2025"), Operation = OperationType.Delete });
     }
 
     #endregion
@@ -280,7 +280,7 @@ public partial class TaggedTransaction : ViewModelBase
     public string Description { get; set; } = "";
     public decimal Amount { get; set; }
     public required Account Account { get; init ; }
-    public ObservableCollection<Tag> Tags { get; } = [];
+    public ObservableCollection<Core.Tag> Tags { get; } = [];
     [Reactive] public partial bool IsDirty { get; set; }
     public int? SlotId { get; set; }
 
@@ -315,7 +315,7 @@ public partial class TagOperation: ViewModelBase
     /// </summary>
     [Reactive] public partial OperationType Operation { get; set; }
 
-    public required Tag Tag { get; init; }
+    public required Core.Tag Tag { get; init; }
 
     public void Apply(TaggedTransaction transaction)
     {
