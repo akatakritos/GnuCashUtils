@@ -22,7 +22,7 @@ public class BulkEditScreenViewModelTests
         public IAccountStore MockAccountStore = Substitute.For<IAccountStore>();
         public TestScheduler TestScheduler = new();
 
-        private List<SelectableTransactionViewModel> _transactions = SampleTransactions;
+        private List<TransactionViewModel> _transactions = SampleTransactions;
 
         public static readonly Account SampleSourceAccount = new()
         {
@@ -38,14 +38,14 @@ public class BulkEditScreenViewModelTests
             Name = "Food"
         };
 
-        public static readonly List<SelectableTransactionViewModel> SampleTransactions =
+        public static readonly List<TransactionViewModel> SampleTransactions =
         [
             new() { Description = "Grocery Store", Amount = -45.00m, Date = new DateTime(2024, 1, 15), SplitGuid = "split-1", TransactionGuid = "txn-1" },
             new() { Description = "Gas Station", Amount = -60.00m, Date = new DateTime(2024, 1, 16), SplitGuid = "split-2", TransactionGuid = "txn-2" },
             new() { Description = "Other Grocery", Amount = -30.00m, Date = new DateTime(2024, 1, 20), SplitGuid = "split-3", TransactionGuid = "txn-3" },
         ];
 
-        public Fixture WithTransactions(List<SelectableTransactionViewModel> transactions)
+        public Fixture WithTransactions(List<TransactionViewModel> transactions)
         {
             _transactions = transactions;
             return this;
@@ -140,59 +140,13 @@ public class BulkEditScreenViewModelTests
     }
 
     [Fact]
-    public async Task TransactionCountEmitsTotalFromAccount()
-    {
-        var vm = _fixture.BuildSubject();
-        int? transactionCount = null;
-        vm.TransactionCount.Subscribe(n => transactionCount = n);
-
-        await SetSourceAccountAndWait(vm, Fixture.SampleSourceAccount);
-
-        transactionCount.Should().Be(3);
-    }
-
-    [Fact]
-    public async Task SelectAllCommandSelectsAllTransactions()
-    {
-        var vm = _fixture.BuildSubject();
-        await SetSourceAccountAndWait(vm, Fixture.SampleSourceAccount);
-
-        await vm.SelectAllCommand.Execute().ToTask();
-
-        vm.Transactions.Should().OnlyContain(t => t.IsSelected);
-    }
-
-    [Fact]
-    public void SelectAllCommandCannotExecuteWhenNoTransactionsLoaded()
-    {
-        var vm = _fixture.BuildSubject();
-        bool canExecute = true;
-        vm.SelectAllCommand.CanExecute.Subscribe(x => canExecute = x);
-
-        canExecute.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task SelectAllCommandCanExecuteAfterTransactionsLoaded()
-    {
-        var vm = _fixture.BuildSubject();
-        bool canExecute = false;
-        vm.SelectAllCommand.CanExecute.Subscribe(x => canExecute = x);
-
-        await SetSourceAccountAndWait(vm, Fixture.SampleSourceAccount);
-
-        canExecute.Should().BeTrue();
-    }
-
-    [Fact]
     public async Task MoveCommandSendsRequestWithCorrectSourceAndDestinationGuids()
     {
         var vm = _fixture.BuildSubject();
         await SetSourceAccountAndWait(vm, Fixture.SampleSourceAccount);
         vm.DestinationAccount = Fixture.SampleDestinationAccount;
-        vm.Transactions[0].IsSelected = true;
 
-        await vm.MoveCommand.Execute().ToTask();
+        await vm.MoveCommand.Execute(vm.Transactions.Take(1)).ToTask();
 
         await _fixture.MockMediator.Received(1).Send(
             Arg.Is<MoveTransactionsCommand>(r =>

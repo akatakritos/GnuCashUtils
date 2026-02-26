@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Name="Screen"
              xmlns:bulkEdit="clr-namespace:GnuCashUtils.BulkEdit"
              xmlns:controls="clr-namespace:GnuCashUtils.Core.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -20,7 +21,6 @@
                 </ComboBox.ItemTemplate>
             </controls:AccountComboBox>
             <TextBox MinWidth="200" Text="{Binding SearchText}" Margin="0 0 8 0"/>
-            <Button Content="Select All" Command="{Binding SelectAllCommand}" />
         </StackPanel>
 
 
@@ -34,29 +34,33 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </controls:AccountComboBox>
-            <Button Content="Move" Command="{Binding MoveCommand}" HorizontalAlignment="Right" Margin="0 0 8 0" />
-            <TextBlock VerticalAlignment="Center" TextAlignment="Right">
-                Showing
-                <TextBlock Text="{Binding FilteredTransactionCount^}" />
-                of
-                <TextBlock Text="{Binding TransactionCount^}" />.
-                <TextBlock Text="{Binding SelectedTransactionCount^}" /> selected.
-            </TextBlock>
+            <Button
+                Content="Move" Name="MoveButton"
+                HorizontalAlignment="Right"
+                Margin="0 0 8 0" />
 
         </StackPanel>
 
-        <DataGrid ItemsSource="{Binding Transactions}">
+        <DataGrid Name="TransactionsGrid" ItemsSource="{Binding Transactions}" SelectionMode="Extended" >
             <DataGrid.Styles>
                 <Style Selector="DataGridCell.CurrencyCell">
                     <Setter Property="TextBlock.TextAlignment" Value="Right" />
                 </Style>
             </DataGrid.Styles>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Date" Binding="{Binding Date,StringFormat=d}" />
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" />
-                <DataGridTextColumn Header="Amount" Binding="{Binding Amount,StringFormat=c}"
-                                    CellStyleClasses="CurrencyCell" />
-                <DataGridCheckBoxColumn Header="Move?" Binding="{Binding IsSelected}" />
+                <DataGridTextColumn
+                    Header="Date" 
+                    Binding="{Binding Date,StringFormat=d}" IsReadOnly="True"/>
+                <DataGridTextColumn 
+                    Header="Description" 
+                    Binding="{Binding Description}" 
+                    Width="*" 
+                    IsReadOnly="True"/>
+                <DataGridTextColumn 
+                    Header="Amount" 
+                    Binding="{Binding Amount,StringFormat=c}"
+                    CellStyleClasses="CurrencyCell" 
+                    IsReadOnly="True"/>
             </DataGrid.Columns>
         </DataGrid>
 

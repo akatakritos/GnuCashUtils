@@ -9,8 +9,8 @@ using MediatR;
 
 namespace GnuCashUtils.BulkEdit;
 
-public record FetchTransactions(string AccountGuid) : IRequest<List<SelectableTransactionViewModel>>;
-public class FetchTransactionsHandler : IRequestHandler<FetchTransactions, List<SelectableTransactionViewModel>>
+public record FetchTransactions(string AccountGuid) : IRequest<List<TransactionViewModel>>;
+public class FetchTransactionsHandler : IRequestHandler<FetchTransactions, List<TransactionViewModel>>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
 
@@ -19,7 +19,7 @@ public class FetchTransactionsHandler : IRequestHandler<FetchTransactions, List<
         _dbConnectionFactory = dbConnectionFactory;
     }
 
-    public Task<List<SelectableTransactionViewModel>> Handle(FetchTransactions request,
+    public Task<List<TransactionViewModel>> Handle(FetchTransactions request,
         CancellationToken cancellationToken)
     {
         using var connection = _dbConnectionFactory.GetConnection();
@@ -33,7 +33,7 @@ where a.guid = @accountGuid
 order by t.post_date desc", new { accountGuid = request.AccountGuid });
 
         cancellationToken.ThrowIfCancellationRequested();
-        var converted = result.Select(r => new SelectableTransactionViewModel()
+        var converted = result.Select(r => new TransactionViewModel()
         {
             Date = r.Date,
             Description = r.Description,

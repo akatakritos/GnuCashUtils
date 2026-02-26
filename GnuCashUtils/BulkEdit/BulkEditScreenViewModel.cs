@@ -25,18 +25,14 @@ public partial class BulkEditScreenViewModel : ViewModelBase, IActivatableViewMo
     [Reactive] public partial Account? SourceAccount { get; set; }
     [Reactive] public partial Account? DestinationAccount { get; set; }
     [Reactive] public partial string SearchText { get; set; }
+
     private readonly Subject<Account> _refreshRequested = new();
     private readonly IScheduler _threadPoolScheduler;
 
-    public ReactiveCommand<Unit, Unit> MoveCommand { get; }
-    public ReactiveCommand<Unit, Unit> SelectAllCommand { get; }
+    public ReactiveCommand<IEnumerable<TransactionViewModel>, Unit> MoveCommand { get; }
 
     [ObservableAsProperty] public partial IReadOnlyCollection<Account> Accounts { get; }
-    public ObservableCollection<SelectableTransactionViewModel> Transactions { get; } = new();
-
-    public IObservable<int> TransactionCount { get; }
-    public IObservable<int> FilteredTransactionCount { get; }
-    public IObservable<int> SelectedTransactionCount { get; }
+    public ObservableCollection<TransactionViewModel> Transactions { get; } = new();
 
     public ViewModelActivator Activator { get; } = new();
 
@@ -55,10 +51,7 @@ public partial class BulkEditScreenViewModel : ViewModelBase, IActivatableViewMo
             .ToSortedCollection(x => x.FullName)
             .ToProperty(this, x => x.Accounts, out _accountsHelper);
 
-        this.WhenActivated(d =>
-        {
-            _accountsHelper.DisposeWith(d);
-        });
+        this.WhenActivated(d => { _accountsHelper.DisposeWith(d); });
 
         var accountTransactions = this.WhenAnyValue(x => x.SourceAccount)
             .Merge(_refreshRequested)
@@ -77,7 +70,8 @@ public partial class BulkEditScreenViewModel : ViewModelBase, IActivatableViewMo
 
         accountTransactions
             .CombineLatest(searchText)
-            .Select(x => x.Item1.Where(t => t.Description?.Contains(x.Item2, StringComparison.OrdinalIgnoreCase) == true))
+            .Select(x =>
+                x.Item1.Where(t => t.Description?.Contains(x.Item2, StringComparison.OrdinalIgnoreCase) == true))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(x =>
             {
@@ -86,41 +80,25 @@ public partial class BulkEditScreenViewModel : ViewModelBase, IActivatableViewMo
             });
 
 
-        TransactionCount = accountTransactions.Select(t => t.Count);
-        FilteredTransactionCount = this.WhenAnyValue(x => x.Transactions)
-            .Select(t => t.Count);
-        SelectedTransactionCount = this.WhenAnyValue(x => x.Transactions)
-            .Select(t => t.Count(x => x.IsSelected));
-
-        SelectAllCommand = ReactiveCommand.Create(
-            execute: () =>
-            {
-                foreach (var t in Transactions)
+        MoveCommand =
+            ReactiveCommand.CreateFromTask((IEnumerable<TransactionViewModel> transactions,
+                    CancellationToken ct) =>
+                Task.Run(async () =>
                 {
-                    t.IsSelected = true;
-                }
-            },
-            canExecute: TransactionCount.Select(n => n > 0));
-
-
-        MoveCommand = ReactiveCommand.CreateFromTask(async () =>
-            {
-                if (SourceAccount == null || DestinationAccount == null) return;
-
-                await mediator.Send(new MoveTransactionsCommand(Transactions, SourceAccount.Guid,
-                    DestinationAccount.Guid));
-                _refreshRequested.OnNext(SourceAccount);
-            }
-        );
+                    if (SourceAccount == null || DestinationAccount == null) return;
+                    await mediator.Send(new MoveTransactionsCommand(transactions, SourceAccount.Guid,
+                        DestinationAccount.Guid), ct);
+                    _refreshRequested.OnNext(SourceAccount);
+                }, ct)
+            );
     }
 }
 
-public partial class SelectableTransactionViewModel : ViewModelBase
+public partial class TransactionViewModel : ViewModelBase
 {
     [Reactive] private string? _description;
     [Reactive] private decimal _amount;
     [Reactive] private DateTime _date;
-    [Reactive] private bool _isSelected;
     [Reactive] private string _transactionGuid = "";
     [Reactive] private string? _splitGuid;
     [Reactive] private string? _accountGuid;
