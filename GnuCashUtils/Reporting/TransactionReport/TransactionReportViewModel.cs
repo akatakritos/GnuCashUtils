@@ -35,9 +35,14 @@ public partial class TransactionReportViewModel : ViewModelBase, IReport, IActiv
 
         this.WhenActivated(d =>
         {
+            
             Observable.FromAsync(ct => _mediator.Send(new FetchTags(), ct))
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(tags => Tags.AddRange(tags.OrderBy(t => t.ToString())))
+                .Subscribe(tags =>
+                {
+                    Tags.Clear();
+                    Tags.AddRange(tags.OrderBy(t => t.ToString()));
+                })
                 .DisposeWith(d);
 
         });
