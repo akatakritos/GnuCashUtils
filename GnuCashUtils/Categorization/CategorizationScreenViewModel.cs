@@ -128,8 +128,6 @@ public partial class CategorizationScreenViewModel : ViewModelBase, IActivatable
         var ext = Path.GetExtension(CsvFilePath);
         var outputPath = Path.Combine(dir, $"{nameWithoutExt}-categorized{ext}");
 
-        var amountHeader = _currentBankConfig.SignConvention == SignConvention.Credit ? "amount_negated" : "amount";
-
         var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             ShouldQuote = _ => true,
@@ -138,18 +136,80 @@ public partial class CategorizationScreenViewModel : ViewModelBase, IActivatable
         using var writer = new StreamWriter(outputPath);
         using var csv = new CsvWriter(writer, csvConfig);
 
-        csv.WriteField("date");
-        csv.WriteField("description");
-        csv.WriteField(amountHeader);
-        csv.WriteField("transfer_account");
+        csv.WriteField("Date");
+        csv.WriteField("Transaction ID");
+        csv.WriteField("Number");
+        csv.WriteField("Description");
+        csv.WriteField("Notes");
+        csv.WriteField("Commodity/Currency");
+        csv.WriteField("Void Reason");
+        csv.WriteField("Action");
+        csv.WriteField("Memo");
+        csv.WriteField("Full Account Name");
+        csv.WriteField("Account Name");
+        csv.WriteField("Amount With Sym");
+        csv.WriteField("Amount Num.");
+        csv.WriteField("Value With Sym");
+        csv.WriteField("Value Num.");
+        csv.WriteField("Reconcile");
+        csv.WriteField("Reconcile Date");
+        csv.WriteField("Rate/Price");
+        
         csv.NextRecord();
+        
+        var bankAccount = Accounts.FirstOrDefault(a => a.FullName == _currentBankConfig.Account);
+        if (bankAccount == null)
+            throw new Exception($"Could not find an account named '{_currentBankConfig.Account}'");
+        
 
         foreach (var row in _source.Items.OrderBy(r => r.CsvIndex))
         {
+            Debug.Assert(row.SelectedAccount is not null);
+
+            var transactionId = Guid.NewGuid().ToString("N");
+            var bankAmount = _currentBankConfig.SignConvention == SignConvention.Debit ? row.Amount : -row.Amount;
+            
+            // bank split
             csv.WriteField(row.Date.ToString("yyyy-MM-dd"));
+            csv.WriteField(transactionId);
+            csv.WriteField("");
             csv.WriteField(row.Description);
-            csv.WriteField(row.Amount);
-            csv.WriteField(row.SelectedAccount?.FullName ?? "");
+            csv.WriteField("");
+            csv.WriteField("CURRENCY::USD");
+            csv.WriteField("");
+            csv.WriteField("");
+            csv.WriteField("");
+            csv.WriteField(bankAccount.FullName);
+            csv.WriteField(bankAccount.Name);
+            csv.WriteField(bankAmount.ToString("$#,##0.00;-$#,##0.00"));
+            csv.WriteField(bankAmount);
+            csv.WriteField(bankAmount.ToString("$#,##0.00;-$#,##0.00"));
+            csv.WriteField(bankAmount);
+            csv.WriteField("c"); // cleared
+            csv.WriteField("");
+            csv.WriteField("1.0000");
+            csv.NextRecord();
+            
+            // transfer split
+            var transferAmount = -bankAmount;
+            csv.WriteField(row.Date.ToString("yyyy-MM-dd"));
+            csv.WriteField(transactionId);
+            csv.WriteField("");
+            csv.WriteField(row.Description);
+            csv.WriteField("");
+            csv.WriteField("CURRENCY::USD");
+            csv.WriteField("");
+            csv.WriteField("");
+            csv.WriteField("");
+            csv.WriteField(row.SelectedAccount.FullName);
+            csv.WriteField(row.SelectedAccount.Name);
+            csv.WriteField(transferAmount.ToString("$#,##0.00;-$#,##0.00"));
+            csv.WriteField(transferAmount);
+            csv.WriteField(transferAmount.ToString("$#,##0.00;-$#,##0.00"));
+            csv.WriteField(transferAmount);
+            csv.WriteField("n"); // cleared
+            csv.WriteField("");
+            csv.WriteField("1.0000");
             csv.NextRecord();
         }
 
