@@ -17,40 +17,39 @@ public record ParseCsvRequest(string FilePath, BankConfig Config) : IRequest<Lis
 
 public class ParseCsvHandler : IRequestHandler<ParseCsvRequest, List<CsvRow>>
 {
-    public Task<List<CsvRow>> Handle(ParseCsvRequest request, CancellationToken cancellationToken) =>
-        Task.Run(() =>
+    public async Task<List<CsvRow>> Handle(ParseCsvRequest request, CancellationToken cancellationToken)
+    {
+        var mapping = ParseHeadersDsl(request.Config.Headers);
+        var rows = new List<CsvRow>();
+
+        using var reader = new StreamReader(request.FilePath);
+        var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            var mapping = ParseHeadersDsl(request.Config.Headers);
-            var rows = new List<CsvRow>();
+            HasHeaderRecord = false,
+            IgnoreBlankLines = false,
+        };
+        using var csv = new CsvReader(reader, csvConfig);
 
-            using var reader = new StreamReader(request.FilePath);
-            var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                HasHeaderRecord = false,
-                IgnoreBlankLines = false,
-            };
-            using var csv = new CsvReader(reader, csvConfig);
+        for (int i = 0; i < request.Config.Skip; i++)
+            await csv.ReadAsync();
 
-            for (int i = 0; i < request.Config.Skip; i++)
-                csv.Read();
+        while (await csv.ReadAsync())
+        {
+            var dateStr = mapping.DateColumnIndex >= 0 ? csv.GetField(mapping.DateColumnIndex) ?? "" : "";
+            var descStr = mapping.DescriptionColumnIndex >= 0 ? csv.GetField(mapping.DescriptionColumnIndex) ?? "" : "";
+            var amtStr = mapping.AmountColumnIndex >= 0 ? csv.GetField(mapping.AmountColumnIndex) ?? "" : "";
 
-            while (csv.Read())
-            {
-                var dateStr = mapping.DateColumnIndex >= 0 ? csv.GetField(mapping.DateColumnIndex) ?? "" : "";
-                var descStr = mapping.DescriptionColumnIndex >= 0 ? csv.GetField(mapping.DescriptionColumnIndex) ?? "" : "";
-                var amtStr = mapping.AmountColumnIndex >= 0 ? csv.GetField(mapping.AmountColumnIndex) ?? "" : "";
+            if (string.IsNullOrWhiteSpace(dateStr) && string.IsNullOrWhiteSpace(descStr))
+                continue;
 
-                if (string.IsNullOrWhiteSpace(dateStr) && string.IsNullOrWhiteSpace(descStr))
-                    continue;
+            var date = DateOnly.ParseExact(dateStr, mapping.DateFormat, CultureInfo.InvariantCulture);
+            var amount = decimal.Parse(amtStr, NumberStyles.Any, CultureInfo.InvariantCulture);
 
-                var date = DateOnly.ParseExact(dateStr, mapping.DateFormat, CultureInfo.InvariantCulture);
-                var amount = decimal.Parse(amtStr, NumberStyles.Any, CultureInfo.InvariantCulture);
+            rows.Add(new CsvRow(date, descStr, amount));
+        }
 
-                rows.Add(new CsvRow(date, descStr, amount));
-            }
-
-            return rows;
-        }, cancellationToken);
+        return rows;
+    }
 
     private record ColumnMapping(int DateColumnIndex, string DateFormat, int DescriptionColumnIndex, int AmountColumnIndex);
 
